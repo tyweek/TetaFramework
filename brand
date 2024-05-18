@@ -5,8 +5,12 @@ require __DIR__ . '/vendor/autoload.php';
 
 use Symfony\Component\Console\Application;
 use TetaFramework\Commands\HelloCommand;
+use TetaFramework\Commands\MakeAllCommand;
 use TetaFramework\Commands\MigrateCommand;
 use TetaFramework\Commands\ServeCommand;
+use TetaFramework\Commands\MakeModelCommand;
+use TetaFramework\Commands\MakeControllerCommand;
+use TetaFramework\Commands\MakeViewCommand;
 
 $application = new Application();
 
@@ -14,5 +18,9 @@ $application = new Application();
 $application->add(new HelloCommand());
 $application->add(new MigrateCommand());
 $application->add(new ServeCommand());
+$application->add(new MakeModelCommand());
+$application->add(new MakeControllerCommand());
+$application->add(new MakeViewCommand());
+$application->add(new MakeAllCommand());
 
 $application->run();

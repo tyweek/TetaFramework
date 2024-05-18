@@ -7,13 +7,18 @@ class CreateUsersTable extends Migration{
     
     public function up()
     {
-        Capsule::schema()->create('users', function (Blueprint $table) {
-            $table->increments('id');
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->string('password');
-            $table->timestamps();
-        });
+        try {
+            Capsule::schema()->create('users', function (Blueprint $table) {
+                $table->increments('id');
+                $table->string('name');
+                $table->string('email')->unique();
+                $table->string('password');
+                $table->timestamps();
+            });
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
+       
     }
 
     public function down()

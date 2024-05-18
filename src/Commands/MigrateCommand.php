@@ -71,6 +71,7 @@ class MigrateCommand extends Command
                     }
                 } catch (\Throwable $th) {
                     //throw $th;
+                    echo $th;
                 }
             }
         }

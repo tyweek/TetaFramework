@@ -14,6 +14,8 @@ $routes->add('users', new Route('/users', [
 $routes->add('addusers', new Route('/users/add', [
     '_controller' => 'App\\Controllers\\UserController::store',
 ], [], [], '', [], ['POST']));
-
+$routes->add('brando', new Route('/brando', [
+    '_controller' => 'App\\Controllers\\BrandoController::index',
+], [], [], '', [], ['GET']));
 
 return $routes;

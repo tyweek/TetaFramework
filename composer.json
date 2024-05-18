@@ -3,11 +3,6 @@
     "description": "este es un framework que se hace solo por pasion a la programacion",
     "type": "project",
     "license": "privada",
-    "autoload": {
-        "psr-4": {
-            "Tyweek\\TetaFramework\\": "src/"
-        }
-    },
     "authors": [
         {
             "name": "tyweek"
@@ -22,8 +17,8 @@
     },
     "autoload": {
         "psr-4": {
-            "App\\": "app/",
-            "TetaFramework\\": "src/"
+            "TetaFramework\\": "src/",
+            "App\\": "app/"
         }
     }
 }
