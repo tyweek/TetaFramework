@@ -5,6 +5,7 @@ require __DIR__ . '/vendor/autoload.php';
 
 use Symfony\Component\Console\Application;
 use TetaFramework\Commands\HelloCommand;
+use TetaFramework\Commands\HelpCommand;
 use TetaFramework\Commands\MakeAllCommand;
 use TetaFramework\Commands\MigrateCommand;
 use TetaFramework\Commands\ServeCommand;
@@ -24,5 +25,6 @@ $application->add(new MakeControllerCommand());
 $application->add(new MakeViewCommand());
 $application->add(new MakeAllCommand());
 $application->add(new RunTestsCommand());
+$application->add(new HelpCommand());
 
 $application->run();
