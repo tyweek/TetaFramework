@@ -11,6 +11,7 @@ use TetaFramework\Commands\ServeCommand;
 use TetaFramework\Commands\MakeModelCommand;
 use TetaFramework\Commands\MakeControllerCommand;
 use TetaFramework\Commands\MakeViewCommand;
+use TetaFramework\Commands\RunTestsCommand;
 
 $application = new Application();
 
@@ -22,5 +23,6 @@ $application->add(new MakeModelCommand());
 $application->add(new MakeControllerCommand());
 $application->add(new MakeViewCommand());
 $application->add(new MakeAllCommand());
+$application->add(new RunTestsCommand());
 
 $application->run();
