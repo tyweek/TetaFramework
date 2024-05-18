@@ -53,20 +53,24 @@ class MigrateCommand extends Command
             {
                 $migracionFile = new $buildClass();
 
-                if ($rollback) {
-                    if (method_exists($migracionFile, 'down')) {
-                        $migracionFile->down();
-                        $output->writeln("Rolled back: {$buildClass}");
+                try {
+                    if ($rollback) {
+                        if (method_exists($migracionFile, 'down')) {
+                            $migracionFile->down();
+                            $output->writeln("Rolled back: {$buildClass}");
+                        } else {
+                            $output->writeln("No down method found for: {$buildClass}");
+                        }
                     } else {
-                        $output->writeln("No down method found for: {$buildClass}");
+                        if (method_exists($migracionFile, 'up')) {
+                            $migracionFile->up();
+                            $output->writeln("Migrated: {$buildClass}");
+                        } else {
+                            $output->writeln("No up method found for: {$buildClass}");
+                        }
                     }
-                } else {
-                    if (method_exists($migracionFile, 'up')) {
-                        $migracionFile->up();
-                        $output->writeln("Migrated: {$buildClass}");
-                    } else {
-                        $output->writeln("No up method found for: {$buildClass}");
-                    }
+                } catch (\Throwable $th) {
+                    //throw $th;
                 }
             }
         }

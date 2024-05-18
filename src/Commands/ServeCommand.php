@@ -16,8 +16,8 @@ class ServeCommand extends Command
     {
         $this
             ->setDescription('Start the PHP built-in server.')
-            ->addArgument('host', InputArgument::OPTIONAL, 'The host address to serve on.', '127.0.0.1')
-            ->addArgument('port', InputArgument::OPTIONAL, 'The port to serve on.', '8000');
+            ->addArgument('host', InputArgument::OPTIONAL, 'The host address to serve on.', '0.0.0.0')
+            ->addArgument('port', InputArgument::OPTIONAL, 'The port to serve on.', '6100');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
