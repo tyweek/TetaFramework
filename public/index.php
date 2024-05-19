@@ -5,23 +5,36 @@ require_once __DIR__ . '/../bootstrap.php';
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Matcher\UrlMatcher;
+use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Exception\MethodNotAllowedException;
-use TetaFramework\Router;
+
 
 $request = Request::createFromGlobals();
 
 $routes = require __DIR__ . '/../routes/web.php';
-$router = new Router($routes);
+
+$context = new RequestContext();
+$request = Request::createFromGlobals();
+$context->fromRequest($request);
+$matcher = new UrlMatcher($routes, $context);
 
 try {
-    // Lógica para manejar la solicitud y encontrar la ruta correspondiente
-    $response = $route = $router->handle($request);
+    // Encuentra la ruta correspondiente para la solicitud actual
+    $parameters = $matcher->match($request->getPathInfo());
 
-    // Ejecutar el controlador y el método correspondiente
-    // ...
+    // Ejecuta el controlador correspondiente
+    $controller = $parameters['_controller'];
+    $action = explode('::', $controller);
+    $class = new $action[0]();
+    $response = call_user_func_array([$class, $action[1]], [$request]);
 
+} catch (ResourceNotFoundException $e) {
+    $response = new Response('Página no encontrada', 404);
 } catch (MethodNotAllowedException $e) {
-    // Capturar la excepción cuando el método HTTP no está permitido
-    $response = new Response('Error: Método HTTP no permitido para esta ruta', 405);
+    $response = new Response('Método HTTP no permitido para esta ruta', 405);
 }
+
+// Envía la respuesta al cliente
 $response->send();

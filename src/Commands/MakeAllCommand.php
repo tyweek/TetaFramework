@@ -72,7 +72,7 @@ class MakeAllCommand extends Command
         $content .= "use App\Models\\$name;\n";
         $content .= "use Symfony\Component\HttpFoundation\Response;\n";
         $content .= "use TetaFramework\View;\n\n";
-        $content .= "class {$name}Controller\n";
+        $content .= "class {$name}Controller extends Controller\n";
         $content .= "{\n";
         $content .= "    public function index()\n";
         $content .= "    {\n";

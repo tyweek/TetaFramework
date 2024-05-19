@@ -1,4 +1,6 @@
 <?php
+date_default_timezone_set('America/Caracas');
+
 error_reporting(E_ERROR | E_PARSE);
 try {
     $config = require_once './../config/database.php';
@@ -7,6 +9,7 @@ try {
 }
 
 use Illuminate\Database\Capsule\Manager as Capsule;
+
 
 
 $capsule = new Capsule;

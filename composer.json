@@ -19,6 +19,7 @@
         "psr-4": {
             "TetaFramework\\": "src/",
             "App\\": "app/"
+            
         }
     },
     "require-dev": {

@@ -1,0 +1,6 @@
+Para crear una validacion de session se usa de la siguiente forma:
+
+$redirect = $this->checkSession();
+if ($redirect !== null) {
+    return $redirect;
+}

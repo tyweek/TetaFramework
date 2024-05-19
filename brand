@@ -11,6 +11,7 @@ use TetaFramework\Commands\MigrateCommand;
 use TetaFramework\Commands\ServeCommand;
 use TetaFramework\Commands\MakeModelCommand;
 use TetaFramework\Commands\MakeControllerCommand;
+use TetaFramework\Commands\MakeMigrationCommand;
 use TetaFramework\Commands\MakeViewCommand;
 use TetaFramework\Commands\RunTestsCommand;
 
@@ -23,6 +24,7 @@ $application->add(new ServeCommand());
 $application->add(new MakeModelCommand());
 $application->add(new MakeControllerCommand());
 $application->add(new MakeViewCommand());
+$application->add(new MakeMigrationCommand());
 $application->add(new MakeAllCommand());
 $application->add(new RunTestsCommand());
 $application->add(new HelpCommand());

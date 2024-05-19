@@ -3,7 +3,7 @@
         'name' => 'tyweek/teta_framework',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '2161817edb0cf127739d08be96650c1efb157117',
+        'reference' => '5bc1481856f46c6803116f5ed752ecc775cd1df0',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -541,7 +541,7 @@
         'tyweek/teta_framework' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '2161817edb0cf127739d08be96650c1efb157117',
+            'reference' => '5bc1481856f46c6803116f5ed752ecc775cd1df0',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
