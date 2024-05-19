@@ -11,3 +11,4 @@ if(!$hs)
 if($hs)
 {
     return new RedirectResponse('/pagina donde va redireccionar');
+}
