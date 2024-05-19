@@ -11,9 +11,3 @@ if(!$hs)
 if($hs)
 {
     return new RedirectResponse('/pagina donde va redireccionar');
-}
-
-
-
-// activar en php.ini
-gettext // se usa para poder implementar los lenguajes
