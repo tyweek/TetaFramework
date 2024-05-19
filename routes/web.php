@@ -1,36 +1,29 @@
 <?php
 
-use Symfony\Component\Routing\RouteCollection;
-use Symfony\Component\Routing\Route;
+// routes.php
 
-$routes = new RouteCollection();
+use TetaFramework\Http\RedirectResponse;
+use TetaFramework\Routing\Router;
+use TetaFramework\Http\Request;
 
-$routes->add('home', new Route('/', [
-    '_controller' => 'App\\Controllers\\HomeController::index',
-], [], [], '', [], ['GET']));
+$router = new Router();
 
-$routes->add('users', new Route('/users', [
-    '_controller' => 'App\\Controllers\\UserController::index',
-], [], [], '', [], ['GET']));
+$router->addRoute('GET', '/', 'App\Controllers\HomeController@index');
+$router->addRoute('GET', '/login', 'App\Controllers\AuthController@index');
+$router->addRoute('GET', '/user', 'App\Controllers\UserController@index');
+$router->addRoute('GET', '/logout', 'App\Controllers\AuthController@logout');
 
-$routes->add('add_user', new Route('/users/add', [
-    '_controller' => 'App\\Controllers\\UserController::store',
-], [], [], '', [], ['POST']));
-
-$routes->add('login', new Route('/login', [
-    '_controller' => 'App\\Controllers\\AuthController::index',
-], [], [], '', [], ['GET']));
-
-$routes->add('login_post', new Route('/login', [
-    '_controller' => 'App\\Controllers\\AuthController::login',
-], [], [], '', [], ['POST']));
-
-$routes->add('login_post', new Route('/login', [
-    '_controller' => 'App\\Controllers\\AuthController::login',
-], [], [], '', [], ['POST']));
-$routes->add('logout', new Route('/logout', [
-    '_controller' => 'App\\Controllers\\AuthController::logout',
-], [], [], '', [], ['GET']));
+$router->addRoute('POST', '/register', 'App\Controllers\UserController@store');
+$router->addRoute('POST', '/login', 'App\Controllers\AuthController@login');
 
 
-return $routes;
+$router->addRoute('GET','/change-language', function(Request $request) {
+    $lng = $request->get('lang');
+    $language = new TetaFramework\Language\Language();
+    $language->ChangeLang($lng);
+    return new RedirectResponse("/");
+    // Actualiza la configuración del idioma del usuario
+    // Puedes almacenar esta configuración en la sesión, en una cookie, etc.
+});
+
+return $router;

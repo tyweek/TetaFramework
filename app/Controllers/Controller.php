@@ -2,35 +2,50 @@
 
 namespace App\Controllers;
 
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Session\Session;
+// use Symfony\Component\HttpFoundation\Session\Session;
+use TetaFramework\Http\Session;
 use App\Components\RedirectComponent;
 use App\Models\AuthSession;
-use DateTime;
+use TetaFramework\Http\RedirectResponse;
+use TetaFramework\Language\Language;
 
 use function PHPSTORM_META\type;
 
 class Controller
 {
+    protected $language;
+
+    public function __construct(Language $language)
+    {
+        $this->language = $language;
+    }
+
+    protected function getLang(){
+        return $this->language;
+    }
     protected function checkSession()
     {
         // Iniciar la sesión
         $session = new Session();
-        $session->start();
 
-        $token = $session->get('token');
-        // Comprobar si hay un usuario autenticado en la sesión
-        if (!$session->has('token')) {
-            // Si no hay un usuario autenticado, redirigir al usuario a la página de inicio de sesión
-            return RedirectComponent::to('/login');
-        }
+        $haveSession = $session->Validate();
+        if($haveSession)
+        {
+            $token = $session->get('token');
 
-        $now =date('Y-m-d H:i:s');
-        $sessionRecord = AuthSession::where('token', $token)->first();
-        if (!$sessionRecord || $sessionRecord->expires_at < $now) {
-            // Si no hay una sesión válida, redirigir al usuario a la página de inicio de sesión
-            return RedirectComponent::to("/logout");
+            $now =date('Y-m-d H:i:s');
+            $sessionRecord = AuthSession::where('token', $token)->first();
+            if (!$sessionRecord || $sessionRecord->expires_at < $now) {
+                // redireccionamos al logout por sesion invalida
+                // return new RedirectResponse("/logout");
+                $session = new Session();
+                $session->invalidate();
+                return false;
+            }
+            return true;
+                // return new RedirectResponse(($redirectPage));
+        }else{
+            return false;
         }
-        // Si hay un usuario autenticado, permitir que continúe la ejecución
     }
 }

@@ -5,23 +5,40 @@ namespace App\Controllers;
 use App\Components\RedirectComponent;
 use App\Models\User;
 use App\Models\AuthSession;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Session\Session;
+use LDAP\Result;
+use TetaFramework\Http\RedirectResponse;
+// use Symfony\Component\HttpFoundation\Response;
+// use Symfony\Component\HttpFoundation\Request;
+// use Symfony\Component\HttpFoundation\Session\Session;
+
+use TetaFramework\Http\Session;
+use TetaFramework\Http\Request;
+use TetaFramework\Http\Response;
+use TetaFramework\Template\Template;
 use TetaFramework\View;
 
 class AuthController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request) : Response
     {
-        $content = View::render('login', []);
+        $hs = $this->checkSession();
+        if($hs)
+        {
+            return new RedirectResponse('/user');
+        }
+
+        $template = new Template();
+        $template->assign('lang', $this->getLang()->getAllTranslate());
+        $content = $template->render("login");
+
+        // $content = View::render('login', []);
         return new Response($content);
     }
 
     public function login(Request $request)
     {
         // Obtener los datos del formulario
-        $username = $request->get('email');
+        $username = $request->get('username');
         $password = $request->get('password');
     
         // Aquí va tu lógica de autenticación para verificar el usuario y contraseña
@@ -44,10 +61,10 @@ class AuthController extends Controller
     
             // Almacenar el token en la sesión del usuario
             $session->set('token', $token);
-            $session->set('user_id', $user->id);
+            $session->set('user', ["user_id" => $user->id,'name' => $user->name,'profile' => ['email' => $user->email,'age' => 15]]);
     
             // Redirigir al usuario a alguna página después del inicio de sesión exitoso
-            return RedirectComponent::to('/');
+            return new RedirectResponse("/user");
         } else {
             // Autenticación fallida, redirigir de nuevo al formulario de inicio de sesión con un mensaje de error
             return new Response('Credenciales incorrectas, vuelve a intentarlo');

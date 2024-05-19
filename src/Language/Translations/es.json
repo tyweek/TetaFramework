@@ -1,0 +1,11 @@
+{
+    "welcome": "Bienvenido",
+    "panel": "Panel",
+    "logout": "Cerrar Sesion",
+    "login_title": "Inicio de Sesion",
+    "login_nav": "Iniciar Sesion",
+    "register_nav": "Registrarse",
+    "login_email": "Correo",
+    "login_password": "Clave",
+    "login_enter": "Entrar"
+}

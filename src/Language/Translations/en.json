@@ -1,0 +1,11 @@
+{
+    "welcome": "Welcome",
+    "panel": "Panel",
+    "logout": "Logout",
+    "login_title": "Login",
+    "login_nav": "Login",
+    "register_nav": "Register",
+    "login_email": "Email",
+    "login_password": "Password",
+    "login_enter": "Enter"
+}

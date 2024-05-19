@@ -2,7 +2,7 @@
 
 namespace App\Components;
 
-use Symfony\Component\HttpFoundation\RedirectResponse;
+use TetaFramework\Http\RedirectResponse;
 
 class RedirectComponent
 {
