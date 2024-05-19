@@ -1,5 +1,4 @@
 <?php
-// src/Http/RedirectResponse.php
 namespace TetaFramework\Http;
 
 class RedirectResponse extends Response
@@ -16,6 +15,5 @@ class RedirectResponse extends Response
         foreach ($this->headers as $key => $value) {
             header("$key: $value");
         }
-        // Redirección no necesita contenido de cuerpo
     }
 }
