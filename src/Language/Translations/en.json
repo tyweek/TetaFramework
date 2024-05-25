@@ -7,5 +7,6 @@
     "register_nav": "Register",
     "login_email": "Email",
     "login_password": "Password",
-    "login_enter": "Enter"
+    "login_enter": "Enter",
+    "credentials_invalid": "Invalid credentials"
 }

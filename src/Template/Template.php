@@ -31,14 +31,20 @@ class Template
         // Renderiza la vista y captura su salida
         $content = View::render($template, $data);
         
+        $content = $this->processCount($content,$this->variables);
+        $content = $this->processIsArray($content,$this->variables);
+
         // Reemplaza las variables en el contenido
         $content = $this->replaceVariables($content, $this->variables);
         
         // Procesa las condiciones en el contenido
         $content = $this->processConditions($content, $this->variables);
-        
-        // Procesa la plantilla para manejar llamadas a funciones de variables
-        $content = $this->parseTemplate($content, $this->variables);
+
+        // Procesa los bucles @foreach
+        $content = $this->processForeach($content, $this->variables);
+
+        $content = $this->replaceUndefinedVariables($content, $this->variables);
+       
         
         // Evalúa el contenido PHP
         eval(' ?>' . $content . '<?php ');
@@ -50,40 +56,6 @@ class Template
      * @param string $template El contenido de la plantilla.
      * @return string El contenido de la plantilla con las variables reemplazadas.
      */
-    protected function parseTemplate($template)
-    {
-        // Patrón para encontrar variables y posibles llamadas a funciones
-        $pattern = '/{{\s*([a-zA-Z_][a-zA-Z0-9_]*(?:->[a-zA-Z_][a-zA-Z0-9_]*)*)(?:\(\))?(\([^{}]+\))?}}/';
-
-        // Reemplaza las coincidencias usando una función de devolución de llamada
-        $content = preg_replace_callback($pattern, function ($matches) {
-            $variableName = $matches[1];
-
-            // Verifica si la variable existe
-            if (isset($this->variables[$variableName])) {
-                $value = $this->variables[$variableName];
-
-                // Si hay una llamada a función, evalúa y llama a la función
-                if (isset($matches[2]) && !empty($matches[2])) {
-                    preg_match('/([a-zA-Z_][a-zA-Z0-9_]*)(\([^{}]+\))/', $matches[2], $functionMatches);
-                    $functionName = $functionMatches[1];
-                    $arguments = eval("return {$functionMatches[2]};"); 
-
-                    if (is_callable([$value, $functionName])) {
-                        return call_user_func_array([$value, $functionName], $arguments);
-                    } else {
-                        return '';
-                    }
-                } else {
-                    return $value;
-                }
-            } else {
-                return '';
-            }
-        }, $template);
-
-        return $content;
-    }
 
     /**
      * Reemplaza las variables en el contenido de la plantilla.
@@ -99,10 +71,31 @@ class Template
             if (is_array($value)) {
                 $content = $this->replaceVariables($content, $value, $prefix . $key . '.');
             } else {
+                // Verificar si la variable existe en el array
                 $placeholder = '{{ ' . $prefix . $key . ' }}';
-                $content = str_replace($placeholder, htmlspecialchars($value, ENT_QUOTES, 'UTF-8'), $content);
+                // Reemplazar el placeholder por el valor de la variable si existe, de lo contrario, por una cadena vacía
+                $content = str_replace($placeholder, isset($variables[$key]) ? htmlspecialchars($value, ENT_QUOTES, 'UTF-8') : '', $content);
             }
         }
+        
+        return $content;
+    }
+    protected function replaceUndefinedVariables($content, $variables)
+    {
+        // Obtener todas las variables entre {{ }} en la vista
+        preg_match_all('/{{\s*([^\s]+)\s*}}/', $content, $matches);
+
+        // Iterar sobre las variables encontradas en la vista
+        foreach ($matches[1] as $match) {
+            $placeholder = '{{ ' . $match . ' }}';
+            $key = trim($match);
+
+            // Reemplazar el placeholder por una cadena vacía si la variable no existe en $variables
+            if (!array_key_exists($key, $variables)) {
+                $content = str_replace($placeholder, '', $content);
+            }
+        }
+
         return $content;
     }
 
@@ -135,6 +128,28 @@ class Template
 
         return $content;
     }
+    
+    protected function processCount($content, $variables)
+    {
+        // Patrón para encontrar llamadas a la función count()
+        $pattern = '/{{\s*count\((.*?)\)\s*}}/';
+
+        // Reemplaza las coincidencias usando una función de devolución de llamada
+        $content = preg_replace_callback($pattern, function ($matches) use ($variables) {
+            // Obtiene la expresión dentro de la llamada a count()
+            $expression = trim($matches[1]);
+
+            // Evalúa la expresión para obtener su valor
+            $value = $this->evaluateExpression($expression, $variables);
+
+            // Verifica si el valor es un array y aplica count(), o devuelve 0 si no es un array
+            return is_array($value) ? count($value) : 0;
+        }, $content);
+
+        return $content;
+    }
+
+    // Otras funciones de la clase...
 
     /**
      * Evalúa una condición para determinar su validez.
@@ -150,7 +165,19 @@ class Template
         // Reemplaza variables en la condición y el valor
         $condition = $this->replaceVariables($condition, $variables);
         $value = $this->replaceVariables($value, $variables);
-
+    
+        // Convertir cadenas 'true' y 'false' a booleanos
+        if ($condition === 'true') {
+            $condition = true;
+        } elseif ($condition === 'false') {
+            $condition = false;
+        }
+        if ($value === 'true') {
+            $value = true;
+        } elseif ($value === 'false') {
+            $value = false;
+        }
+    
         // Evalúa la condición basada en el operador
         switch ($operator) {
             case '==':
@@ -169,4 +196,159 @@ class Template
                 return false; // Devuelve falso para cualquier otro operador no reconocido
         }
     }
+    
+
+    /**
+     * Procesa los bucles @foreach en el contenido de la plantilla.
+     *
+     * @param string $content El contenido de la plantilla.
+     * @param array $variables Las variables a utilizar en los bucles.
+     * @return string El contenido con los bucles procesados.
+     */
+    protected function processForeach($content, $variables)
+    {
+        // Patrón para encontrar estructuras @foreach en la plantilla
+        $pattern = '/{{\s*@foreach\s*\((.*?)\s+as\s+(\$\w+)(?:\s*=>\s*(\$\w+))?\)\s*}}(.*?){{\s*@endforeach\s*}}/s';
+        preg_match_all($pattern, $content, $matches, PREG_SET_ORDER);
+    
+        // Iterar sobre todas las coincidencias encontradas
+        foreach ($matches as $match) {
+            // Obtener la expresión del bucle y el contenido dentro del bucle
+            $arrayExpression = trim($match[1]);
+            $valueVariable = trim($match[2]);
+            $keyVariable = isset($match[3]) ? trim($match[3]) : null;
+            $loopContent = trim($match[4]);
+    
+            // Evaluar la expresión del array
+            $array = $this->evaluateExpression($arrayExpression, $variables);
+    
+            // Inicializar una cadena para almacenar el contenido del bucle procesado
+            $processedLoopContent = '';
+    
+            // Verificar si el array es un array asociativo
+            if (is_array($array) && count(array_filter(array_keys($array), 'is_string')) > 0) {
+                // Iterar sobre el array asociativo
+                foreach ($array as $key => $value) {
+                    // Si el valor es un array, procesarlo como mensajes de error
+                    if (is_array($value)) {
+                        foreach ($value as $message) {
+                            // Crear un nuevo conjunto de variables para el contenido del bucle
+                            $loopVariables = array_merge($variables, [
+                                $valueVariable => $key,
+                                $keyVariable => $message
+                            ]);
+                            // Procesar el contenido del bucle con las nuevas variables
+                            $processedLoopContent .= $this->replaceVariables($loopContent, $loopVariables);
+                        }
+                    } else {
+                        // Si el valor no es un array, procesarlo normalmente
+                        // Crear un nuevo conjunto de variables para el contenido del bucle
+                        $loopVariables = array_merge($variables, [
+                            $valueVariable => $value,
+                            $keyVariable => $key
+                        ]);
+                        // Procesar el contenido del bucle con las nuevas variables
+                        $processedLoopContent .= $this->replaceVariables($loopContent, $loopVariables);
+                    }
+                }
+            } else {
+                // Procesar el bucle normalmente
+                // Iterar sobre el array
+                foreach ($array as $key => $value) {
+                    // Crear un nuevo conjunto de variables para el contenido del bucle
+                    $loopVariables = array_merge($variables, [
+                        $valueVariable => $value
+                    ]);
+                    // Si se proporciona una variable para la clave del bucle, agregarla a las variables del bucle
+                    if ($keyVariable !== null) {
+                        $loopVariables[$keyVariable] = $key;
+                    }
+                    // Procesar el contenido del bucle con las nuevas variables
+                    $processedLoopContent .= $this->replaceVariables($loopContent, $loopVariables);
+                }
+            }
+    
+            // Reemplazar la estructura del bucle en el contenido con el contenido del bucle procesado
+            $content = str_replace($match[0], $processedLoopContent, $content);
+        }
+    
+        return $content;
+    }
+
+    /**
+     * Verifica si un array es asociativo.
+     *
+     * @param array $array El array a verificar.
+     * @return bool True si el array es asociativo, False en caso contrario.
+     */
+    protected function isAssociativeArray($array)
+    {
+        return is_array($array) && array_keys($array) !== range(0, count($array) - 1);
+    }
+
+    /**
+     * Verifica si un array es de un tipo especial.
+     *
+     * @param array $array El array a verificar.
+     * @return bool True si el array es de un tipo especial, False en caso contrario.
+     */
+    protected function isSpecialArray($array)
+    {
+        if (!is_array($array) || empty($array)) {
+            return false;
+        }
+
+        foreach ($array as $value) {
+            if (!is_array($value) || count($value) !== 1 || !is_array(reset($value))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
+    /**
+     * Evalúa una expresión para obtener su valor.
+     *
+     * @param string $expression La expresión a evaluar.
+     * @param array $variables Las variables a utilizar en la evaluación.
+     * @return mixed El resultado de la evaluación de la expresión.
+     */
+    protected function evaluateExpression($expression, $variables)
+    {
+        // Crear un contexto para evaluar la expresión con las variables
+        $variablesForEval = $variables;
+        extract($variablesForEval);
+
+        // Evaluar la expresión en el contexto creado
+        return eval("return ($expression);");
+    }
+    /**
+ * Procesa la función is_array() en la vista.
+ *
+ * @param string $content El contenido de la plantilla.
+ * @param array $variables Las variables a utilizar.
+ * @return string El contenido con la función is_array() procesada.
+ */
+protected function processIsArray($content, $variables)
+{
+   // Patrón para encontrar llamadas a la función is_array()
+   $pattern = '/{{\s*is_array\((.*?)\)\s*}}/';
+
+   // Reemplaza las coincidencias usando una función de devolución de llamada
+   $content = preg_replace_callback($pattern, function ($matches) use ($variables) {
+       // Obtiene la expresión dentro de la llamada a is_array()
+       $expression = trim($matches[1]);
+
+       // Evalúa la expresión para obtener su valor
+       $value = $this->evaluateExpression($expression, $variables);
+
+       // Devuelve true si la expresión es un array, false en caso contrario
+       return $value ? 'true' : 'false';
+   }, $content);
+
+   return $content;
+}
+
 }

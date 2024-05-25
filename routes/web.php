@@ -10,10 +10,12 @@ $router = new Router();
 
 $router->addRoute('GET', '/', 'App\Controllers\HomeController@index');
 $router->addRoute('GET', '/login', 'App\Controllers\AuthController@index');
+$router->addRoute('GET', '/register', 'App\Controllers\AuthController@register');
 $router->addRoute('GET', '/user', 'App\Controllers\UserController@index');
 $router->addRoute('GET', '/logout', 'App\Controllers\AuthController@logout');
 
-$router->addRoute('POST', '/register', 'App\Controllers\UserController@store');
+
+$router->addRoute('POST', '/register', 'App\Controllers\AuthController@register');
 $router->addRoute('POST', '/login', 'App\Controllers\AuthController@login');
 
 

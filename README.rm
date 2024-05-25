@@ -12,3 +12,31 @@ if($hs)
 {
     return new RedirectResponse('/pagina donde va redireccionar');
 }
+
+
+como usar un foreach en la vista 
+
+{{ @foreach ($test as $usuario) }}
+    <li>{{ $usuario }}</li>
+{{ @endforeach }}
+
+<ul class="errors">
+     {{ @foreach ($errors as $field) }}
+        {{ @foreach ($field as $message) }}
+            <li>{{ $message }}</li>
+        {{ @endforeach }}
+    {{ @endforeach }}
+</ul>
+
+{{ @foreach ($errors as $campo => $error) }}
+    <li>{{ $campo }}</li>
+    <li>{{ $error }}</li>
+{{ @endforeach }}
+
+$validator = Validator::make($data, [
+    'name' => 'required',
+    'email' => 'required|email',
+    'age' => 'required|int',
+    "salary" => 'required|decimal',
+    'password' => 'required',
+]);

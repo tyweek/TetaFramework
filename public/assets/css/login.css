@@ -59,6 +59,22 @@ button:hover {
     background-color: #45a049;
 }
 
+.errors {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+.errors ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.errors li {
+    margin: 5px 0;
+}
+
 @media (max-width: 600px) {
     .container {
         padding: 10px;

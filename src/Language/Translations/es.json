@@ -7,5 +7,6 @@
     "register_nav": "Registrarse",
     "login_email": "Correo",
     "login_password": "Clave",
-    "login_enter": "Entrar"
+    "login_enter": "Entrar",
+    "credentials_invalid": "Credenciales invalidas"
 }

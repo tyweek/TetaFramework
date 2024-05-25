@@ -10,10 +10,26 @@
     <div class="container">
         <div class="login-form">
             <h2>{{ lang.login_title }}</h2>
+             <!-- Mostrar errores aquí -->
+             
+             @if( {{ is_array($errors) }} == true)
+                <ul class="errors">
+                    {{ @foreach ($errors as $field => $message) }}
+                        <li>{{ $message }}</li>
+                    {{ @endforeach }}
+                </ul>
+            @endif
+            @if( {{ is_array($credentials) }} == true)
+                <ul class="errors">
+                    {{ @foreach ($credentials as $message) }}
+                            <li>{{ $message }}</li>
+                    {{ @endforeach }}
+                </ul>
+            @endif
             <form method="POST" action="/login">
                 <div class="input-group">
                     <label for="username">{{ lang.login_email }}</label>
-                    <input type="text" id="username" name="username" required>
+                    <input type="email" id="username" name="username" required value="{{ username }}">
                 </div>
                 <div class="input-group">
                     <label for="password">{{ lang.login_password }}</label>

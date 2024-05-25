@@ -33,10 +33,6 @@ class Request
 
         return $default;
     }
-    public function GetRequest()
-    {
-        return $this->query;
-    }
 
     public function getMethod()
     {
@@ -48,6 +44,27 @@ class Request
         $path = $this->server['REQUEST_URI'] ?? '/';
         $path = parse_url($path, PHP_URL_PATH);
         return $path;
+    }
+
+    public function all()
+    {
+        // Combina los datos de query y request
+        return array_merge($this->query, $this->request);
+    }
+
+    public function getRequest()
+    {
+        return $this->request;
+    }
+
+    public function getQuery()
+    {
+        return $this->query;
+    }
+
+    public function getServer()
+    {
+        return $this->server;
     }
 
     // Otros métodos como getQuery, getPost, etc. pueden ser añadidos según necesidad

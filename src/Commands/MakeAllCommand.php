@@ -67,14 +67,17 @@ class MakeAllCommand extends Command
 
     protected function createControllerFile($name)
     {
+        
+
         $content = "<?php\n\n";
         $content .= "namespace App\Controllers;\n\n";
         $content .= "use App\Models\\$name;\n";
-        $content .= "use Symfony\Component\HttpFoundation\Response;\n";
+        $content .= "use TetaFramework\Http\Response;\n";
+        $content .= "use TetaFramework\Http\Request;\n";
         $content .= "use TetaFramework\View;\n\n";
         $content .= "class {$name}Controller extends Controller\n";
         $content .= "{\n";
-        $content .= "    public function index()\n";
+        $content .= "    public function index(Request \$request)\n";
         $content .= "    {\n";
         $content .= "        \$items = $name::all();\n";
         $content .= "        \$content = View::render('{$name}', ['items' => \$items]);\n";
