@@ -4,11 +4,7 @@ namespace App\Controllers;
 
 use App\Models\User;
 use App\Models\AuthSession;
-use LDAP\Result;
 use TetaFramework\Http\RedirectResponse;
-// use Symfony\Component\HttpFoundation\Response;
-// use Symfony\Component\HttpFoundation\Request;
-// use Symfony\Component\HttpFoundation\Session\Session;
 
 use TetaFramework\Http\Session;
 use TetaFramework\Http\Request;
@@ -23,7 +19,7 @@ class AuthController extends Controller
         $hs = $this->checkSession();
         if($hs)
         {
-            return new RedirectResponse('/user');
+            return new RedirectResponse('/panel');
         }
 
         $template = new Template();
@@ -79,7 +75,7 @@ class AuthController extends Controller
             $hs = $this->checkSession();
             if($hs)
             {
-                return new RedirectResponse('/user');
+                return new RedirectResponse('/panel');
             }
 
             $template = new Template();
@@ -124,7 +120,7 @@ class AuthController extends Controller
             $session->set('user', ["user_id" => $user->id,'name' => $user->name,'profile' => ['email' => $user->email,'age' => 15]]);
     
             // Redirigir al usuario a alguna página después del inicio de sesión exitoso
-            return new RedirectResponse("/user");
+            return new RedirectResponse("/panel");
         } else {
             // Autenticación fallida, redirigir de nuevo al formulario de inicio de sesión con un mensaje de error
             // return new Response('Credenciales incorrectas, vuelve a intentarlo');
@@ -159,6 +155,15 @@ class AuthController extends Controller
         
 
         // Redirigir al usuario a la página de inicio o a donde desees después del cierre de sesión
+        return new RedirectResponse('/');
+    }
+    public function toLogin()
+    {
+        $hs = $this->checkSession();
+        if($hs)
+        {
+            return new RedirectResponse('/panel');
+        }
         return new RedirectResponse('/');
     }
 }

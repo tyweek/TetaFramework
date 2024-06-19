@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace TetaFramework\base;
 
 use TetaFramework\Database\Model;
+
 class AuthSession extends Model
 {
     protected $table = 'sessions';

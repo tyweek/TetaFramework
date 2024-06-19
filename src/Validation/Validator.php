@@ -65,7 +65,17 @@ class Validator
             $this->errors[$field][] = 'The ' . $field . ' field must be a decimal.';
         }
     }
-
+    protected function validateMax($field, $max)
+    {
+        if (isset($this->data[$field])) {
+            $value = $this->data[$field];
+            if (is_numeric($value) && $value > $max) {
+                $this->errors[$field][] = 'The ' . $field . ' field must be less than or equal to ' . $max . '.';
+            } elseif (is_string($value) && strlen($value) > $max) {
+                $this->errors[$field][] = 'The ' . $field . ' field must be less than or equal to ' . $max . ' characters.';
+            }
+        }
+    }
     public function fails()
     {
         return !empty($this->errors);

@@ -57,7 +57,7 @@ class MakeModelCommand extends Command
         // Definir el contenido del archivo PHP del modelo
         $content = "<?php\n\n";
         $content .= "namespace App\Models;\n\n";
-        $content .= "use Illuminate\Database\Eloquent\Model;\n\n";
+        $content .= "use TetaFramework\Database\Model;\n\n";
         $content .= "class $modelName extends Model\n";
         $content .= "{\n";
         $content .= "    protected \$table = '$tableName';\n";

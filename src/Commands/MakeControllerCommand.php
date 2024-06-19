@@ -46,11 +46,11 @@ class MakeControllerCommand extends Command
         // Definir el contenido del archivo PHP del controlador
         $content = "<?php\n\n";
         $content .= "namespace App\Controllers;\n\n";
-        $content .= "use Symfony\Component\HttpFoundation\Response;\n";
+        $content .= "use TetaFramework\Http\Response;\n";
         $content .= "use TetaFramework\View;\n\n";
-        $content .= "class $controllerName\n";
+        $content .= "class ".$controllerName."Controller extends Controller\n";
         $content .= "{\n";
-        $content .= "    public function index()\n";
+        $content .= "    public function index(Request \$request) : Response\n";
         $content .= "    {\n";
         $content .= "        // Aquí puedes agregar la lógica de tu controlador\n";
         $content .= "        return new Response(View::render('$controllerName',[]));\n";

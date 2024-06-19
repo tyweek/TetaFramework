@@ -16,6 +16,7 @@ use TetaFramework\Commands\MakeControllerCommand;
 use TetaFramework\Commands\MakeMigrationCommand;
 use TetaFramework\Commands\MakeViewCommand;
 use TetaFramework\Commands\RunTestsCommand;
+use TetaFramework\Commands\ProjectNewCommand;
 
 // Crea una nueva instancia de la aplicación de consola de Symfony
 $application = new Application();
@@ -42,6 +43,8 @@ $application->add(new MakeAllCommand());
 $application->add(new RunTestsCommand());
 // Añade el comando HelpCommand a la aplicación de consola
 $application->add(new HelpCommand());
+// Añade el comando ProjectNewCommand a la aplicación de consola
+$application->add(new ProjectNewCommand());
 
 // Ejecuta la aplicación de consola
 $application->run();

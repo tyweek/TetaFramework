@@ -8,17 +8,19 @@ class Request
     private $query;
     private $request;
     private $server;
+    private $files;
 
-    public function __construct(array $query = [], array $request = [], array $server = [])
+    public function __construct(array $query = [], array $request = [], array $server = [], array $files = [])
     {
         $this->query = $query;
         $this->request = $request;
         $this->server = $server;
+        $this->files = $files;
     }
 
     public static function createFromGlobals()
     {
-        return new self($_GET, $_POST, $_SERVER);
+        return new self($_GET, $_POST, $_SERVER, $_FILES);
     }
 
     public function get($key, $default = null)
@@ -65,6 +67,16 @@ class Request
     public function getServer()
     {
         return $this->server;
+    }
+
+    public function getFiles()
+    {
+        return $this->files;
+    }
+
+    public function getFile($key)
+    {
+        return $this->files[$key] ?? null;
     }
 
     // Otros métodos como getQuery, getPost, etc. pueden ser añadidos según necesidad

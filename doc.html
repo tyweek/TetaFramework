@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TetaFramework Documentation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+        }
+        header {
+            background: #333;
+            color: #fff;
+            padding-top: 30px;
+            min-height: 70px;
+            border-bottom: #77d7b3 3px solid;
+        }
+        header a {
+            color: #fff;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-size: 16px;
+        }
+        header ul {
+            padding: 0;
+            list-style: none;
+        }
+        header li {
+            display: inline;
+            padding: 0 20px 0 20px;
+        }
+        .highlight {
+            color: #77d7b3;
+        }
+        .content {
+            padding: 20px;
+            background: #fff;
+            margin-top: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        code {
+            background: #f4f4f4;
+            border: 1px solid #ddd;
+            padding: 2px 4px;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+        pre {
+            background: #f4f4f4;
+            border: 1px solid #ddd;
+            padding: 10px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><span class="highlight">TetaFramework</span> Documentation</h1>
+            <nav>
+                <ul>
+                    <li><a href="#models">Models</a></li>
+                    <li><a href="#views">Views</a></li>
+                    <li><a href="#controllers">Controllers</a></li>
+                    <li><a href="#validation">Form Validation</a></li>
+                    <li><a href="#template">Template</a></li>
+                    <li><a href="#language">Language</a></li>
+                    <li><a href="#routes">Routes</a></li>
+                    <li><a href="#http">HTTP Classes</a></li>
+                    <li><a href="#commands">Commands</a></li>
+                    <li><a href="#structure">Framework Structure</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <div class="container">
+        <div class="content" id="models">
+            <h2>Models</h2>
+            <p>Models are used to interact with the database. Here is an example of a model in TetaFramework:</p>
+            <pre><code>class User extends Model {
+    protected $table = 'users';
+    protected $fillable = ['name', 'email', 'password'];
+}</code></pre>
+        </div>
+
+        <div class="content" id="views">
+            <h2>Views</h2>
+            <p>Views are used to render HTML. Here is an example of a view in TetaFramework:</p>
+            <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Welcome&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Welcome, {{ name }}!&lt;/h1&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+        </div>
+
+        <div class="content" id="controllers">
+            <h2>Controllers</h2>
+            <p>Controllers handle the logic of your application. Here is an example of a controller in TetaFramework:</p>
+            <pre><code>class UserController {
+    public function show($id) {
+        $user = User::find($id);
+        return View::make('user.show', ['user' => $user]);
+    }
+}</code></pre>
+        </div>
+
+        <div class="content" id="validation">
+            <h2>Form Validation</h2>
+            <p>Form validation is essential for ensuring data integrity. Here is an example of form validation in TetaFramework:</p>
+            <pre><code>$validator = new Validator($request->all(), [
+    'name' => 'required|max:255',
+    'email' => 'required|email|unique:users',
+    'password' => 'required|min:6',
+]);
+
+if ($validator->fails()) {
+    return redirect('register')->withErrors($validator)->withInput();
+}</code></pre>
+        </div>
+
+        <div class="content" id="template">
+            <h2>Template</h2>
+            <p>The template engine in TetaFramework allows you to create dynamic views. Here is an example:</p>
+            <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Register&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div class="container"&gt;
+        &lt;h1&gt;Register&lt;/h1&gt;
+        {{ @foreach ($errors as $error) }}
+            &lt;div class="error"&gt;{{ $error }}&lt;/div&gt;
+        {{ @endforeach }}
+        &lt;form method="POST" action="/register"&gt;
+            &lt;input type="text" name="name" value="{{ old('name') }}"&gt;
+            &lt;input type="email" name="email" value="{{ old('email') }}"&gt;
+            &lt;input type="password" name="password"&gt;
+            &lt;button type="submit"&gt;Register&lt;/button&gt;
+        &lt;/form&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+        </div>
+
+        <div class="content" id="language">
+            <h2>Language</h2>
+            <p>The language system in TetaFramework allows for easy localization. Here is an example:</p>
+            <pre><code>// In a language file (e.g., lang/en.php)
+return [
+    'welcome' => 'Welcome',
+    'login' => 'Login',
+];</code></pre>
+        </div>
+
+        <div class="content" id="routes">
+            <h2>Routes</h2>
+            <p>Routes define the URL structure of your application. Here is an example of routing in TetaFramework:</p>
+            <pre><code>Router::get('/', 'HomeController@index');
+Router::post('/login', 'AuthController@login');</code></pre>
+        </div>
+
+        <div class="content" id="http">
+            <h2>HTTP Classes</h2>
+            <p>TetaFramework provides various HTTP classes to handle requests and responses. Here is an example:</p>
+            <pre><code>// Handling a request
+$request = new Request();
+$name = $request->input('name');
+
+// Sending a response
+$response = new Response('Hello, world!');
+$response->send();</code></pre>
+        </div>
+
+        <div class="content" id="commands">
+            <h2>Commands</h2>
+            <p>Commands are used for running tasks from the command line. Here is an example:</p>
+            <pre><code>class CreateUserCommand extends Command {
+    protected $signature = 'user:create {name} {email}';
+
+    public function handle() {
+        $name = $this->argument('name');
+        $email = $this->argument('email');
+        User::create(['name' => $name, 'email' => $email]);
+    }
+}</code></pre>
+        </div>
+
+        <div class="content" id="structure">
+            <h2>Framework Structure</h2>
+            <p>The structure of TetaFramework is designed to be intuitive and easy to navigate. Here is an overview:</p>
+            <pre><code>/app
+    /Controllers
+    /Models
+    /Views
+/config
+/lang
+/public
+/routes
+    web.php
+/resources
+    /views
+/storage
+/vendor</code></pre>
+        </div>
+    </div>
+</body>
+</html>

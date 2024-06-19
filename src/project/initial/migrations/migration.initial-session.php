@@ -4,7 +4,7 @@ use TetaFramework\Database\Blueprint;
 use TetaFramework\Database\Migrations\Migration;
 use TetaFramework\Database\DatabaseManager;
 
-class CreatesessionsTable extends Migration
+class CreateSessionsTable extends Migration
 {
     public function up()
     {

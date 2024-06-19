@@ -26,28 +26,62 @@ class Template
      * @param string $template Nombre de la plantilla.
      * @param array $data Datos adicionales a pasar a la vista.
      */
-    public function render($template, $data = [])
-    {
+    public function render($template, $data = [],$isComponent = false)
+    {   
+        $path = $template;
+        if($isComponent)
+            $path = "components/$template";
         // Renderiza la vista y captura su salida
-        $content = View::render($template, $data);
-        
-        $content = $this->processCount($content,$this->variables);
-        $content = $this->processIsArray($content,$this->variables);
+        $content = View::render($path, $data);
+
+        $content = $this->processDirectives($content, $this->variables);
+    
+        // Evalúa el contenido PHP
+        eval(' ?>' . $content . '<?php ');
+    }
+    protected function processDirectives($content, $variables)
+    {
 
         // Reemplaza las variables en el contenido
         $content = $this->replaceVariables($content, $this->variables);
-        
+        // Procesa bloques @php en la plantilla
+        $content = $this->processPhp($content, $this->variables);
+        // Procesa los bucles @for y foreach
+        $content = $this->processLoops($content, $variables);
         // Procesa las condiciones en el contenido
         $content = $this->processConditions($content, $this->variables);
 
-        // Procesa los bucles @foreach
-        $content = $this->processForeach($content, $this->variables);
-
         $content = $this->replaceUndefinedVariables($content, $this->variables);
-       
+        return $content;
+    }
+    protected function processLoops($content, $variables)
+    {
+        $content = $this->processForeach($content, $variables);
+        $content = $this->processFor($content, $variables);
+        return $content;
+    }
+
+    protected function processPhp($content, $variables)
+    {
+        // Patrón para encontrar bloques @php en la plantilla
+        $pattern = '/@php\s*(.*?)\s*@endphp/s';
+        preg_match_all($pattern, $content, $matches, PREG_SET_ORDER);
         
-        // Evalúa el contenido PHP
-        eval(' ?>' . $content . '<?php ');
+        // Iterar sobre cada bloque encontrado
+        foreach ($matches as $match) {
+            // Obtener el código PHP del bloque
+            $phpCode = $match[1];
+
+            // Evaluar el código PHP en el contexto actual de variables
+            ob_start();
+            eval($phpCode);
+            $evaluatedPhpCode = ob_get_clean();
+
+            // Reemplazar el bloque @php con el resultado evaluado
+            $content = str_replace($match[0], $evaluatedPhpCode, $content);
+        }
+
+        return $content;
     }
 
     /**
@@ -70,16 +104,63 @@ class Template
         foreach ($variables as $key => $value) {
             if (is_array($value)) {
                 $content = $this->replaceVariables($content, $value, $prefix . $key . '.');
+            } elseif (is_object($value)) {
+                foreach ($value as $property => $propertyValue) {
+                    $placeholder = '{{ ' . $prefix . $key . '.' . $property . ' }}';
+                    $content = str_replace($placeholder, $propertyValue, $content);
+                }
+
+                $reflection = new \ReflectionClass($value);
+                $methods = $reflection->getMethods(\ReflectionMethod::IS_PUBLIC);
+                foreach ($methods as $method) {
+                    $methodName = $method->getName();
+                    $placeholder = '{{ ' . $prefix . $key . '.' . $methodName . '() }}';
+                    if (strpos($content, $placeholder) !== false) {
+                        $result = call_user_func([$value, $methodName]);
+                        $content = str_replace($placeholder, $result, $content);
+                    }
+                }
             } else {
-                // Verificar si la variable existe en el array
                 $placeholder = '{{ ' . $prefix . $key . ' }}';
-                // Reemplazar el placeholder por el valor de la variable si existe, de lo contrario, por una cadena vacía
-                $content = str_replace($placeholder, isset($variables[$key]) ? htmlspecialchars($value, ENT_QUOTES, 'UTF-8') : '', $content);
+                $content = str_replace($placeholder, $value, $content);
             }
         }
-        
+
         return $content;
     }
+    // protected function replaceVariables($content, $variables, $prefix = '')
+    // {
+    //     foreach ($variables as $key => $value) {
+    //         if (is_array($value)) {
+    //             $content = $this->replaceVariables($content, $value, $prefix . $key . '.');
+    //         } elseif (is_object($value)) {
+    //             // Reemplazar las propiedades del objeto
+    //             foreach ($value as $property => $propertyValue) {
+    //                 $placeholder = '{{ ' . $prefix . $key . '.' . $property . ' }}';
+    //                 $content = str_replace($placeholder, $propertyValue, $content);
+    //             }
+
+    //             // Reemplazar las funciones del objeto
+    //             $reflection = new \ReflectionClass($value);
+    //             $methods = $reflection->getMethods(\ReflectionMethod::IS_PUBLIC);
+    //             foreach ($methods as $method) {
+    //                 $methodName = $method->getName();
+    //                 $placeholder = '{{ ' . $prefix . $key . '.' . $methodName . '() }}';
+    //                 if (strpos($content, $placeholder) !== false) {
+    //                     $result = call_user_func([$value, $methodName]);
+    //                     $content = str_replace($placeholder, $result, $content);
+    //                 }
+    //             }
+    //         } else {
+    //             $placeholder = '{{ ' . $prefix . $key . ' }}';
+    //             $content = str_replace($placeholder, $value, $content);
+    //         }
+    //     }
+
+       
+
+    //     return $content;
+    // }
     protected function replaceUndefinedVariables($content, $variables)
     {
         // Obtener todas las variables entre {{ }} en la vista
@@ -274,6 +355,56 @@ class Template
     
         return $content;
     }
+    protected function processFor($content, $variables)
+    {
+        // Patrón para encontrar estructuras @for en la plantilla
+        // $pattern = '/{{\s*@for\s*\((.*?)\s*;\s*(.*?)\s*;\s*(.*?)\s*\)\s*}}(.*?){{\s*@endfor\s*}}/s';
+        // $pattern = '/\s*@for\s*\((.*?)\s*;\s*(.*?)\s*;\s*(.*?)\s*\)\s*(.*?)\s*@endfor\s*/s';
+        $pattern = '/\s*@for\s*\((.*?)\s*;\s*(.*?)\s*;\s*(.*?)\s*\)\s*(.*?)\s*@endfor\s*/s';
+        preg_match_all($pattern, $content, $matches, PREG_SET_ORDER);
+        
+        foreach ($matches as $match) {
+            $initial = trim($match[1]);
+            $condition = trim($match[2]);
+            $increment = trim($match[3]);
+            $loopContent = $match[4];
+            $initialValue = null;
+            // Evaluar la expresión inicial
+            eval('$initialValue = ' . $initial . ';');
+    
+            $processedLoopContent = '';
+            $iterations = 0;
+    
+            // Evaluar la condición y el contenido del bucle
+            while (eval('return ' . $condition . ';')) {
+                $loopVariables = $variables;
+                $loopVariables['i'] = $initialValue; // Asignar el valor inicial a la variable de control del bucle
+
+
+                // $loopContent = $this->processConditions($loopContent, $loopVariables);
+                // Procesar el contenido del bucle con las variables actualizadas
+                $processedLoopContent .= $this->replaceVariables($loopContent, $loopVariables);
+                
+                // Evaluar la expresión de incremento
+                eval($increment . ';');
+                
+                // Incrementar el valor inicial para la próxima iteración
+                $initialValue++;
+    
+                $iterations++;
+                if ($iterations > 1000) {
+                    throw new \Exception("Se ha detectado un posible bucle infinito en la directiva @for.");
+                }
+            }
+    
+            // Reemplazar la estructura del bucle en el contenido con el contenido del bucle procesado
+            $content = str_replace($match[0], $processedLoopContent, $content);
+        }
+    
+    
+        return $content;
+    }
+    
 
     /**
      * Verifica si un array es asociativo.

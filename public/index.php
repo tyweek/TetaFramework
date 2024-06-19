@@ -12,8 +12,7 @@ $language = new TetaFramework\Language\Language("es");
 $language->fromSession();
 
 // Incluimos el archivo de rutas
-$router = require_once __DIR__ . '/../routes/web.php';
-
 $request = Request::createFromGlobals();
+$router = require_once __DIR__ . '/../routes/web.php';
 $response = $router->handle($request,$language);
 $response->send();

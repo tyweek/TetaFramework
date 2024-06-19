@@ -25,10 +25,40 @@ class MakeAllCommand extends Command
         $this->createControllerFile($name);
         $this->createViewFile($name);
         $this->createMigrationFile($name);
+        $this->addRoute($name);
 
         $output->writeln("Model, view, controller, and migration for '$name' created successfully.");
 
         return Command::SUCCESS;
+    }
+
+    protected function addRoute($name)
+    {
+        // Agregar las rutas generadas al archivo de rutas web.php
+        $routeContent = "\n\n";
+        $routeContent .= "// Rutas generadas automáticamente por el comando make:all\n";
+        $routeContent .= "\n";
+        $routeContent .= "// Ruta para mostrar todos los registros\n";
+        $routeContent .= "\$router->addRoute('GET', '/".lcfirst($name)."', 'App\Controllers\\{$name}Controller@index');\n";
+        $routeContent .= "\n";
+        $routeContent .= "// Ruta para almacenar un nuevo registro\n";
+        $routeContent .= "\$router->addRoute('POST', '/".lcfirst($name)."', 'App\Controllers\\{$name}Controller@store');\n";
+        $routeContent .= "\n";
+
+        // Leer el contenido actual del archivo de rutas
+        $routePath = __DIR__ . '/../../routes/web.php';
+        $currentRouteContent = file_get_contents($routePath);
+
+        // Encontrar la posición de la declaración de retorno en el archivo de rutas
+        $position = strrpos($currentRouteContent, 'return ');
+
+        // Insertar las rutas generadas antes de la declaración de retorno
+        $currentRouteContent = substr_replace($currentRouteContent, $routeContent, $position, 0);
+
+        // Escribir el contenido actualizado de las rutas al archivo web.php
+        file_put_contents($routePath, $currentRouteContent);
+
+
     }
 
     protected function askForName(InputInterface $input, OutputInterface $output)
@@ -49,10 +79,10 @@ class MakeAllCommand extends Command
     {
         $content = "<?php\n\n";
         $content .= "namespace App\Models;\n\n";
-        $content .= "use Illuminate\Database\Eloquent\Model;\n\n";
+        $content .= "use TetaFramework\Database\Model;\n\n";
         $content .= "class $name extends Model\n";
         $content .= "{\n";
-        $content .= "    protected \$table = '".$name."s';\n";
+        $content .= "    protected \$table = '$name';\n";
         $content .= "    protected \$fillable = [];\n";
         $content .= "}\n";
 
@@ -71,23 +101,17 @@ class MakeAllCommand extends Command
 
         $content = "<?php\n\n";
         $content .= "namespace App\Controllers;\n\n";
-        $content .= "use App\Models\\$name;\n";
         $content .= "use TetaFramework\Http\Response;\n";
-        $content .= "use TetaFramework\Http\Request;\n";
         $content .= "use TetaFramework\View;\n\n";
-        $content .= "class {$name}Controller extends Controller\n";
+        $content .= "class ".$name."Controller extends Controller\n";
         $content .= "{\n";
-        $content .= "    public function index(Request \$request)\n";
+        $content .= "    public function index(Request \$request) : Response\n";
         $content .= "    {\n";
-        $content .= "        \$items = $name::all();\n";
-        $content .= "        \$content = View::render('{$name}', ['items' => \$items]);\n";
-        $content .= "        return new Response(\$content);\n";
-        $content .= "    }\n\n";
-        $content .= "    public function store()\n";
-        $content .= "    {\n";
-        $content .= "        // Implement store logic\n";
+        $content .= "        // Aquí puedes agregar la lógica de tu controlador\n";
+        $content .= "        return new Response(View::render('$name',[]));\n";
         $content .= "    }\n";
         $content .= "}\n";
+
 
         $path = __DIR__ . '/../../app/Controllers/' . $name . 'Controller.php';
 
@@ -116,15 +140,15 @@ class MakeAllCommand extends Command
     protected function createMigrationFile($name)
     {
         $content = "<?php\n\n";
-        $content .= "use Illuminate\Database\Capsule\Manager as Capsule;\n";
-        $content .= "use Illuminate\Database\Schema\Blueprint;\n";
-        $content .= "use Illuminate\Database\Migrations\Migration;\n\n";
+        $content .= "use TetaFramework\Database\DatabaseManager;\n";
+        $content .= "use TetaFramework\Database\Blueprint;\n";
+        $content .= "use TetaFramework\Database\Migrations\Migration;\n\n";
         $content .= "class Create" . $name . "Table extends Migration\n";
         $content .= "{\n";
         $content .= "    public function up()\n";
         $content .= "    {\n";
         $content .= "       try{\n";
-        $content .= "            Capsule::schema()->create('" . strtolower($name) . "s', function (Blueprint \$table) {\n";
+        $content .= "            DatabaseManager::schema()->create('" . strtolower($name) . "s', function (Blueprint \$table) {\n";
         $content .= "            \$table->increments('id');\n";
         $content .= "            \$table->timestamps();\n";
         $content .= "        });\n";
@@ -133,7 +157,7 @@ class MakeAllCommand extends Command
         $content .= "    }\n\n";
         $content .= "    public function down()\n";
         $content .= "    {\n";
-        $content .= "        Capsule::schema()->dropIfExists('" . strtolower($name) . "s');\n";
+        $content .= "        DatabaseManager::schema()->dropIfExists('" . strtolower($name) . "s');\n";
         $content .= "    }\n";
         $content .= "}\n";
 

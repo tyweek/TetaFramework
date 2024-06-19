@@ -43,15 +43,15 @@ class MakeMigrationCommand extends Command
     protected function createMigrationFile($name)
     {
         $content = "<?php\n\n";
-        $content .= "use Illuminate\Database\Capsule\Manager as Capsule;\n";
-        $content .= "use Illuminate\Database\Schema\Blueprint;\n";
-        $content .= "use Illuminate\Database\Migrations\Migration;\n\n";
+        $content .= "use TetaFramework\Database\DatabaseManager;\n";
+        $content .= "use TetaFramework\Database\Blueprint;\n";
+        $content .= "use TetaFramework\Database\Migrations\Migration;\n\n";
         $content .= "class Create" . $name . "Table extends Migration\n";
         $content .= "{\n";
         $content .= "    public function up()\n";
         $content .= "    {\n";
         $content .= "       try{\n";
-        $content .= "            Capsule::schema()->create('" . strtolower($name) . "s', function (Blueprint \$table) {\n";
+        $content .= "            DatabaseManager::schema()->create('" . strtolower($name) . "s', function (Blueprint \$table) {\n";
         $content .= "            \$table->increments('id');\n";
         $content .= "            \$table->timestamps();\n";
         $content .= "        });\n";
@@ -60,7 +60,7 @@ class MakeMigrationCommand extends Command
         $content .= "    }\n\n";
         $content .= "    public function down()\n";
         $content .= "    {\n";
-        $content .= "        Capsule::schema()->dropIfExists('" . strtolower($name) . "s');\n";
+        $content .= "        DatabaseManager::schema()->dropIfExists('" . strtolower($name) . "s');\n";
         $content .= "    }\n";
         $content .= "}\n";
 
