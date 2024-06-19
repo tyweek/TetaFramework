@@ -48,6 +48,7 @@ class MakeControllerCommand extends Command
         $content .= "namespace App\Controllers;\n\n";
         $content .= "use TetaFramework\Http\Response;\n";
         $content .= "use TetaFramework\Http\Request;\n\n";
+        $content .= "use TetaFramework\base\Controller;\n\n";
         $content .= "use TetaFramework\View;\n\n";
         $content .= "class ".$controllerName."Controller extends Controller\n";
         $content .= "{\n";
