@@ -1,0 +1,32 @@
+{
+    "name": "tyweek/teta_framework",
+    "description": "este es un framework que se hace solo por pasion a la programacion",
+    "type": "project",
+    "license": "privada",
+    "authors": [
+        {
+            "name": "tyweek"
+        }
+    ],
+    "require": {
+        "psr/log": "^3.0",
+        "symfony/http-foundation": "^6.0",
+        "symfony/routing": "^6.0",
+        "illuminate/database": "^9.52",
+        "symfony/console": "^6.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "TetaFramework\\": "src/",
+            "App\\": "app/"
+            
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.6"
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit tests"
+    }
+    
+}

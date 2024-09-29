@@ -1,0 +1,50 @@
+#!/usr/bin/env php
+<?php
+
+// Incluye el archivo autoload.php de Composer para cargar automáticamente las dependencias del proyecto
+require __DIR__ . '/vendor/autoload.php';
+
+// Importa las clases necesarias desde el componente Symfony Console y los comandos específicos del TetaFramework
+use Symfony\Component\Console\Application;
+use TetaFramework\Commands\HelloCommand;
+use TetaFramework\Commands\HelpCommand;
+use TetaFramework\Commands\MakeAllCommand;
+use TetaFramework\Commands\MigrateCommand;
+use TetaFramework\Commands\ServeCommand;
+use TetaFramework\Commands\MakeModelCommand;
+use TetaFramework\Commands\MakeControllerCommand;
+use TetaFramework\Commands\MakeMigrationCommand;
+use TetaFramework\Commands\MakeViewCommand;
+use TetaFramework\Commands\RunTestsCommand;
+use TetaFramework\Commands\ProjectNewCommand;
+
+// Crea una nueva instancia de la aplicación de consola de Symfony
+$application = new Application();
+
+// Registrar comandos aquí
+
+// Añade el comando HelloCommand a la aplicación de consola
+$application->add(new HelloCommand());
+// Añade el comando MigrateCommand a la aplicación de consola
+$application->add(new MigrateCommand());
+// Añade el comando ServeCommand a la aplicación de consola
+$application->add(new ServeCommand());
+// Añade el comando MakeModelCommand a la aplicación de consola
+$application->add(new MakeModelCommand());
+// Añade el comando MakeControllerCommand a la aplicación de consola
+$application->add(new MakeControllerCommand());
+// Añade el comando MakeViewCommand a la aplicación de consola
+$application->add(new MakeViewCommand());
+// Añade el comando MakeMigrationCommand a la aplicación de consola
+$application->add(new MakeMigrationCommand());
+// Añade el comando MakeAllCommand a la aplicación de consola
+$application->add(new MakeAllCommand());
+// Añade el comando RunTestsCommand a la aplicación de consola
+$application->add(new RunTestsCommand());
+// Añade el comando HelpCommand a la aplicación de consola
+$application->add(new HelpCommand());
+// Añade el comando ProjectNewCommand a la aplicación de consola
+$application->add(new ProjectNewCommand());
+
+// Ejecuta la aplicación de consola
+$application->run();

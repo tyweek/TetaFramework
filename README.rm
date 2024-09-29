@@ -1,0 +1,90 @@
+Para crear una validacion de session se usa de la siguiente forma:
+
+$hs = $this->checkSession();
+//validar si no tiene sesion
+if(!$hs)
+{
+    return new RedirectResponse('/pagina donde va redireccionar');
+}
+
+//validar si tiene sesion
+if($hs)
+{
+    return new RedirectResponse('/pagina donde va redireccionar');
+}
+
+
+como usar un foreach en la vista 
+
+{{ @foreach ($test as $usuario) }}
+    <li>{{ $usuario }}</li>
+{{ @endforeach }}
+
+@for ([$i = 0; $i <= 10; $i++])
+    <p>Index: {{ $i }}</p>
+@endfor
+
+
+<ul class="errors">
+     {{ @foreach ($errors as $field) }}
+        {{ @foreach ($field as $message) }}
+            <li>{{ $message }}</li>
+        {{ @endforeach }}
+    {{ @endforeach }}
+</ul>
+
+{{ @foreach ($errors as $campo => $error) }}
+    <li>{{ $campo }}</li>
+    <li>{{ $error }}</li>
+{{ @endforeach }}
+
+$validator = Validator::make($data, [
+    'name' => 'required',
+    'email' => 'required|email',
+    'age' => 'required|int',
+    "salary" => 'required|decimal',
+    'password' => 'required',
+]);
+
+// Crear una tabla usando la instancia global
+DatabaseManager::schema()->create('users', function($table) {
+    $table->increments('id');
+    $table->string('name');
+    $table->string('email')->unique();
+    $table->timestamps();
+});
+
+// Renombrar una tabla existente de 'users' a 'members'
+DatabaseManager::schema()->rename('users', 'members');
+
+// Añadir una nueva columna 'profile_photo' a la tabla 'members'
+DatabaseManager::schema()->addColumn('members', 'profile_photo VARCHAR(255)');
+
+// Eliminar una columna 'profile_photo' de la tabla 'members'
+DatabaseManager::schema()->dropColumn('members', 'profile_photo');
+
+// Modificar una columna 'email' en la tabla 'members'
+DatabaseManager::schema()->modifyColumn('members', 'email VARCHAR(320)');
+
+// Añadir un índice a la columna 'email' en la tabla 'members'
+DatabaseManager::schema()->addIndex('members', 'index_email', 'email');
+
+// Eliminar un índice de la tabla 'members'
+DatabaseManager::schema()->dropIndex('members', 'index_email');
+
+
+// Obtener todos los registros
+$users = User::all();
+
+// Encontrar un registro por ID
+$user = User::find(1);
+
+// Crear un nuevo registro
+$newUser = User::create(['name' => 'John Doe', 'email' => 'john@example.com']);
+
+// Actualizar un registro existente
+$user->name = 'Jane Doe';
+$user->save();
+
+// Eliminar un registro
+$user->delete();
