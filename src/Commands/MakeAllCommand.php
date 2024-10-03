@@ -79,7 +79,7 @@ class MakeAllCommand extends Command
     {
         $content = "<?php\n\n";
         $content .= "namespace App\Models;\n\n";
-        $content .= "use Illuminate\Database\Eloquent\Model;\n\n";
+        $content .= "use TetaFramework\Database\Model;\n\n";
         $content .= "class $name extends Model\n";
         $content .= "{\n";
         $content .= "    protected \$table = '".$name."s';\n";
@@ -104,19 +104,21 @@ class MakeAllCommand extends Command
         $content .= "use App\Models\\$name;\n";
         $content .= "use TetaFramework\Http\Response;\n";
         $content .= "use TetaFramework\Http\Request;\n";
-        $content .= "use TetaFramework\View;\n\n";
+        $content .= "use TetaFramework\Http\RedirectResponse;\n";
+        $content .= "use TetaFramework\Http\Session;\n";
+        $content .= "use TetaFramework\Template\Template;\n";
         $content .= "class {$name}Controller extends Controller\n";
         $content .= "{\n";
-        $content .= "    public function index(Request \$request)\n";
+        $content .= "    public function index(Request \$request): Response\n";
         $content .= "    {\n";
         $content .= "        \$items = $name::all();\n";
-        $content .= "        \$content = View::render('{$name}', ['items' => \$items]);\n";
+        $content .= "        \$template = new Template();\n";
+        $content .= "        \$template->assign('lang', \$this->getLang()->getAllTranslate());\n";
+        $content .= "        \$template->assign('locale', \$this->getLang()->getLocale());\n";
+        $content .= "        \$template->assign('uri', \$request->getPathInfo());\n";
+        $content .= "        \$content = \$template->render('$name');\n";
         $content .= "        return new Response(\$content);\n";
         $content .= "    }\n\n";
-        $content .= "    public function store()\n";
-        $content .= "    {\n";
-        $content .= "        // Implement store logic\n";
-        $content .= "    }\n";
         $content .= "}\n";
 
         $path = __DIR__ . '/../../app/Controllers/' . $name . 'Controller.php';
@@ -146,24 +148,25 @@ class MakeAllCommand extends Command
     protected function createMigrationFile($name)
     {
         $content = "<?php\n\n";
-        $content .= "use Illuminate\Database\Capsule\Manager as Capsule;\n";
-        $content .= "use Illuminate\Database\Schema\Blueprint;\n";
-        $content .= "use Illuminate\Database\Migrations\Migration;\n\n";
+        $content .= "use TetaFramework\Database\Blueprint;\n";
+        $content .= "use TetaFramework\Database\Migrations\Migration;\n";
+        $content .= "use TetaFramework\Database\DatabaseManager;\n\n";
         $content .= "class Create" . $name . "Table extends Migration\n";
         $content .= "{\n";
         $content .= "    public function up()\n";
         $content .= "    {\n";
         $content .= "       try{\n";
-        $content .= "            Capsule::schema()->create('" . strtolower($name) . "s', function (Blueprint \$table) {\n";
+        $content .= "            DatabaseManager::schema()->create('" . strtolower($name) . "s', function (Blueprint \$table) {\n";
         $content .= "            \$table->increments('id');\n";
         $content .= "            \$table->timestamps();\n";
         $content .= "        });\n";
         $content .= "       } catch (\Throwable \$th) {\n";
-        $content .= "      }\n";
+        $content .= "            throw $th;";
+        $content .= "       }\n";
         $content .= "    }\n\n";
         $content .= "    public function down()\n";
         $content .= "    {\n";
-        $content .= "        Capsule::schema()->dropIfExists('" . strtolower($name) . "s');\n";
+        $content .= "        DatabaseManager::schema()->dropIfExists('" . strtolower($name) . "s');\n";
         $content .= "    }\n";
         $content .= "}\n";
 
