@@ -28,9 +28,7 @@ class Template
      */
     public function render($template, $data = [],$isComponent = false)
     {   
-        $path = $template;
-        if($isComponent)
-            $path = "components/$template";
+        $path = $isComponent ? "components/$template" : $template;
         // Renderiza la vista y captura su salida
         $content = View::render($path, $data);
 
@@ -39,9 +37,11 @@ class Template
         // Evalúa el contenido PHP
         eval(' ?>' . $content . '<?php ');
     }
+    
     protected function processDirectives($content, $variables)
     {
-
+        // Procesar las directivas como @import
+        $content = $this->processImports($content);
         // Reemplaza las variables en el contenido
         $content = $this->replaceVariables($content, $this->variables);
         // Procesa bloques @php en la plantilla
@@ -52,8 +52,29 @@ class Template
         $content = $this->processConditions($content, $this->variables);
 
         $content = $this->replaceUndefinedVariables($content, $this->variables);
+
+        
+
         return $content;
     }
+
+    public function processImports($templateContent)
+    {
+         // Expresión regular para encontrar @import->nombre
+        $pattern = '/@import->([a-zA-Z0-9_]+)/';
+
+        // Función de callback para reemplazar las directivas
+        $callback = function($matches) {
+            $fragmentName = $matches[1];
+            
+            // Usar View::render para cargar el fragmento
+            return View::render("partials/$fragmentName", []);
+        };
+
+        // Reemplazar las directivas en el contenido de la plantilla
+        return preg_replace_callback($pattern, $callback, $templateContent);
+    }
+
     protected function processLoops($content, $variables)
     {
         $content = $this->processForeach($content, $variables);
