@@ -151,6 +151,36 @@ class Model
 
         return null;
     }
+    
+    public static function allwhere($column, $operator = null, $value = null)
+    {
+        // Si solo se pasan dos argumentos, asumimos que el operador es "="
+        if (func_num_args() == 2) {
+            $value = $operator;
+            $operator = "=";
+        }
+
+        // Realizar la consulta usando los argumentos proporcionados
+        $query = static::query()->select()->where($column, $operator, $value);
+        
+        return $query->getArray();
+    }
+
+    public static function andallwhere($column, $operator = null, $value = null,
+    $andcol = null,$andopr = null,$anvalue = null)
+    {
+        // Si solo se pasan dos argumentos, asumimos que el operador es "="
+        if (func_num_args() == 2) {
+            $value = $operator;
+            $operator = "=";
+        }
+
+        // Realizar la consulta usando los argumentos proporcionados
+        $query = static::query()->select()->where($column, $operator, $value)
+        ->where($andcol,$andopr,$anvalue);
+        
+        return $query->getArray();
+    }
 
 
     protected function getTable()

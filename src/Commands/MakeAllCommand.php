@@ -24,10 +24,18 @@ class MakeAllCommand extends Command
         $this->createModelFile($name);
         $this->createControllerFile($name);
         $this->createViewFile($name);
-        $this->createMigrationFile($name);
+        $migrationquestion = $this->askForMigration($input, $output);
         $this->addRoute($name);
+        
+        $migrationquestion = strtolower($migrationquestion);
 
-        $output->writeln("Model, view, controller, and migration for '$name' created successfully.");
+        if($migrationquestion == "si")
+        {
+            $this->createMigrationFile($name);
+            $output->writeln("Model, view, controller, and migration for '$name' created successfully.");
+        }else{
+            $output->writeln("Model, view, controller for '$name' created successfully.");
+        }
 
         return Command::SUCCESS;
     }
@@ -36,14 +44,14 @@ class MakeAllCommand extends Command
     {
         // Agregar las rutas generadas al archivo de rutas web.php
         $routeContent = "\n\n";
-        $routeContent .= "// Rutas generadas automáticamente por el comando make:all\n";
+        //$routeContent .= "// Rutas generadas automáticamente por el comando make:all\n";
         $routeContent .= "\n";
         $routeContent .= "// Ruta para mostrar todos los registros\n";
         $routeContent .= "\$router->addRoute('GET', '/".lcfirst($name)."', 'App\Controllers\\{$name}Controller@index');\n";
         $routeContent .= "\n";
-        $routeContent .= "// Ruta para almacenar un nuevo registro\n";
-        $routeContent .= "\$router->addRoute('POST', '/".lcfirst($name)."', 'App\Controllers\\{$name}Controller@store');\n";
-        $routeContent .= "\n";
+        //$routeContent .= "// Ruta para almacenar un nuevo registro\n";
+        //$routeContent .= "\$router->addRoute('POST', '/".lcfirst($name)."', 'App\Controllers\\{$name}Controller@store');\n";
+        //$routeContent .= "\n";
 
         // Leer el contenido actual del archivo de rutas
         $routePath = __DIR__ . '/../../routes/web.php';
@@ -59,6 +67,20 @@ class MakeAllCommand extends Command
         file_put_contents($routePath, $currentRouteContent);
 
 
+    }
+
+    protected function askForMigration(InputInterface $input, OutputInterface $output)
+    {
+        $helper = $this->getHelper('question');
+        $question = new Question('Quieres crear migracion? (Si/No)');
+        $question->setValidator(function ($answer) {
+            if (empty(trim($answer))) {
+                throw new \RuntimeException('debes ingresar una respuesta.');
+            }
+            return ucfirst($answer);
+        });
+
+        return $helper->ask($input, $output, $question);
     }
 
     protected function askForName(InputInterface $input, OutputInterface $output)
@@ -161,7 +183,7 @@ class MakeAllCommand extends Command
         $content .= "            \$table->timestamps();\n";
         $content .= "        });\n";
         $content .= "       } catch (\Throwable \$th) {\n";
-        $content .= "            throw $th;";
+        $content .= "            throw \$th;";
         $content .= "       }\n";
         $content .= "    }\n\n";
         $content .= "    public function down()\n";

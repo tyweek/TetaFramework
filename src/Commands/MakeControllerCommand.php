@@ -46,15 +46,25 @@ class MakeControllerCommand extends Command
         // Definir el contenido del archivo PHP del controlador
         $content = "<?php\n\n";
         $content .= "namespace App\Controllers;\n\n";
-        $content .= "use Symfony\Component\HttpFoundation\Response;\n";
-        $content .= "use TetaFramework\View;\n\n";
-        $content .= "class $controllerName\n";
+        $content .= "use App\Models\\$controllerName;\n";
+        $content .= "use TetaFramework\Http\Response;\n";
+        $content .= "use TetaFramework\Http\Request;\n";
+        $content .= "use TetaFramework\Http\RedirectResponse;\n";
+        $content .= "use TetaFramework\Http\Session;\n";
+        $content .= "use TetaFramework\Template\Template;\n";
+        $content .= "\n";
+        $content .= "class {$controllerName}Controller extends Controller\n";
         $content .= "{\n";
-        $content .= "    public function index()\n";
+        $content .= "    public function index(Request \$request): Response\n";
         $content .= "    {\n";
-        $content .= "        // Aquí puedes agregar la lógica de tu controlador\n";
-        $content .= "        return new Response(View::render('$controllerName',[]));\n";
-        $content .= "    }\n";
+        $content .= "        \$items = $controllerName::all();\n";
+        $content .= "        \$template = new Template();\n";
+        $content .= "        \$template->assign('lang', \$this->getLang()->getAllTranslate());\n";
+        $content .= "        \$template->assign('locale', \$this->getLang()->getLocale());\n";
+        $content .= "        \$template->assign('uri', \$request->getPathInfo());\n";
+        $content .= "        \$content = \$template->render('$controllerName');\n";
+        $content .= "        return new Response(\$content);\n";
+        $content .= "    }\n\n";
         $content .= "}\n";
 
         // Ruta donde se guardará el archivo del controlador
