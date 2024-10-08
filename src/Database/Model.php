@@ -18,7 +18,7 @@ class Model
         $this->attributes = $attributes;
         $this->exists = false; // Inicializar como false
     }
-    
+
 
     public static function query()
     {
@@ -62,21 +62,6 @@ class Model
         return null;
     }
 
-    // public function save()
-    // {
-    //     if ($this->exists) {
-    //         return static::query()->where($this->getPrimaryKey(), '=', $this->getKey())->update($this->attributes);
-    //     } else {
-    //         $id = static::query()->insert($this->attributes);
-    //         if ($id) {
-    //             $this->exists = true;
-    //             $this->setKey($id);
-    //         }
-    //         return $id;
-    //     }
-    // }
-
-  
     public function save()
     {
         // Verificar si el modelo ya existe en la base de datos
@@ -85,8 +70,8 @@ class Model
             return static::query()->select()->where($this->getPrimaryKey(), '=', $this->getKey())->update($this->attributes);
         } else {
             $existingModel = static::query()->select()
-            ->where($this->uniqueField, '=', $this->{$this->uniqueField}) // Suponiendo que 'name' es el campo único
-            ->first();
+                ->where($this->uniqueField, '=', $this->{$this->uniqueField}) // Suponiendo que 'name' es el campo único
+                ->first();
             if ($existingModel) {
                 // Si el campo único ya existe, arrojar un error
                 echo "El valor del campo único '{$this->{$this->uniqueField}}' ya existe en la base de datos.";
@@ -101,8 +86,9 @@ class Model
             }
         }
     }
-    
-    public function update(){
+
+    public function update()
+    {
         $this->save();
     }
 
@@ -121,16 +107,19 @@ class Model
         return $created;
     }
 
-    // public static function where($column, $value)
-    // {
-    //     $result = static::query()->select()->where($column, "=", $value)->first();
-    //     if ($result) {
-    //         $model = new static($result); // Crear una nueva instancia de Test con los datos obtenidos
-    //         $model->exists = true; // Marcar el modelo como existente
-    //         return $model;
-    //     }
-    //     return null;
-    // }
+    public static function bulk_create(array $attributes)
+    {
+        $objects = [];
+        foreach($attributes as $item) 
+        {
+            $model = new static($attributes);
+            $objects[] = $model->save();
+            die();
+        }
+        
+        return $objects;
+    }
+
     public static function where($column, $operator = null, $value = null)
     {
         // Si solo se pasan dos argumentos, asumimos que el operador es "="
@@ -142,7 +131,7 @@ class Model
         // Realizar la consulta usando los argumentos proporcionados
         $query = static::query()->select()->where($column, $operator, $value);
         $result = $query->first();
-        
+
         if ($result) {
             $model = new static($result); // Crear una nueva instancia del modelo con los datos obtenidos
             $model->exists = true; // Marcar el modelo como existente
@@ -151,7 +140,28 @@ class Model
 
         return null;
     }
-    
+
+    public static function wheres($column, $operator = null, $value = null)
+    {
+        // Si solo se pasan dos argumentos, asumimos que el operador es "="
+        if (func_num_args() == 2) {
+            $value = $operator;
+            $operator = "=";
+        }
+
+        // Realizar la consulta usando los argumentos proporcionados
+        $query = static::query()->select()->where($column, $operator, $value);
+        $result = [];
+        foreach($query->get() as $item)
+        {
+            $model = new static((array)$item); // Crear una nueva instancia del modelo con los datos obtenidos
+            $model->exists = true; // Marcar el modelo como existente
+            $result[] = $model;
+        }
+
+        return $result;
+    }
+
     public static function allwhere($column, $operator = null, $value = null)
     {
         // Si solo se pasan dos argumentos, asumimos que el operador es "="
@@ -162,13 +172,32 @@ class Model
 
         // Realizar la consulta usando los argumentos proporcionados
         $query = static::query()->select()->where($column, $operator, $value);
-        
+
         return $query->getArray();
     }
 
-    public static function andallwhere($column, $operator = null, $value = null,
-    $andcol = null,$andopr = null,$anvalue = null)
+    public static function allbetween($column, $value = null, $value2 = null)
     {
+ 
+        if (func_num_args() == 3) {
+            $value2 = $value2;
+            $value = $value;
+        }
+
+        $query = static::query()->select()->whereBetween($column, $value, $value2);
+
+
+        return $query->getArray();
+    }
+
+    public static function andallwhere(
+        $column,
+        $operator = null,
+        $value = null,
+        $andcol = null,
+        $andopr = null,
+        $anvalue = null
+    ) {
         // Si solo se pasan dos argumentos, asumimos que el operador es "="
         if (func_num_args() == 2) {
             $value = $operator;
@@ -177,8 +206,8 @@ class Model
 
         // Realizar la consulta usando los argumentos proporcionados
         $query = static::query()->select()->where($column, $operator, $value)
-        ->where($andcol,$andopr,$anvalue);
-        
+            ->where($andcol, $andopr, $anvalue);
+
         return $query->getArray();
     }
 
@@ -220,7 +249,7 @@ class Model
         $relatedInstance = new $related;
         $foreignKey = $foreignKey ?: $this->getForeignKey();
         $localKey = $localKey ?: $this->primaryKey;
-        return $relatedInstance->query()->select()->where($foreignKey,'=', $this->{$localKey})->firstObj();
+        return $relatedInstance->query()->select()->where($foreignKey, '=', $this->{$localKey})->firstObj();
     }
 
     public function hasMany($related, $foreignKey = null, $localKey = null)
@@ -228,7 +257,7 @@ class Model
         $relatedInstance = new $related;
         $foreignKey = $foreignKey ?: $this->getForeignKey();
         $localKey = $localKey ?: $this->primaryKey;
-        return $relatedInstance->query()->where($foreignKey,'=', $this->{$localKey})->get();
+        return $relatedInstance->query()->where($foreignKey, '=', $this->{$localKey})->get();
     }
 
     public function belongsTo($related, $foreignKey = null, $ownerKey = null)
@@ -236,7 +265,7 @@ class Model
         $relatedInstance = new $related;
         $foreignKey = $foreignKey ?: $this->getForeignKey();
         $ownerKey = $ownerKey ?: $relatedInstance->primaryKey;
-        return $relatedInstance->query()->where($ownerKey,'=', $this->{$foreignKey})->first();
+        return $relatedInstance->query()->where($ownerKey, '=', $this->{$foreignKey})->first();
     }
 
     public function belongsToMany($related, $pivotTable, $foreignPivotKey, $relatedPivotKey, $localKey = null, $relatedKey = null)
@@ -247,7 +276,7 @@ class Model
 
         $pivotTable = (new QueryBuilder($this->connection, $pivotTable))
             ->select([$foreignPivotKey, $relatedPivotKey])
-            ->where($foreignPivotKey,'=', $this->{$localKey})
+            ->where($foreignPivotKey, '=', $this->{$localKey})
             ->getArray();
 
         $relatedIds = array_column($pivotTable, $relatedPivotKey);

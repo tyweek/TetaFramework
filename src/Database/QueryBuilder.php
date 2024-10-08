@@ -31,8 +31,8 @@ class QueryBuilder
 
     public function where($column, $operator, $value)
     {
-        if($operator == 'LIKE')
-            $value = "".$value."";
+        if ($operator == 'LIKE')
+            $value = "" . $value . "";
         if ($this->whereClause) {
             $this->whereClause .= " AND $column $operator ?";
         } else {
@@ -41,6 +41,20 @@ class QueryBuilder
         $this->bindings[] = $value;
         return $this;
     }
+
+    public function whereBetween($column, $value1, $value2)
+    {
+        if ($this->whereClause) {
+            $this->whereClause .= " AND $column BETWEEN ? AND ?";
+        } else {
+            $this->whereClause = " WHERE $column BETWEEN ? AND ?";
+        }
+        $this->bindings[] = $value1;
+        $this->bindings[] = $value2;
+
+        return $this;
+    }
+    
     public function whereIn($column, $values)
     {
         $placeholders = implode(', ', array_fill(0, count($values), '?'));
@@ -55,9 +69,9 @@ class QueryBuilder
 
     public function orWhere($column, $operator, $value)
     {
-        if($operator == 'LIKE')
-            $value = "".$value."";
-        
+        if ($operator == 'LIKE')
+            $value = "" . $value . "";
+
         if ($this->whereClause) {
             $this->whereClause .= " OR $column $operator ?";
         } else {
@@ -125,7 +139,7 @@ class QueryBuilder
         try {
             $sql = $this->query . $this->whereClause . " LIMIT 1";
             $stmt = $this->connection->prepare($sql);
-            $stmt->execute($this->bindings); 
+            $stmt->execute($this->bindings);
             return $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             // Log the error message
@@ -138,7 +152,7 @@ class QueryBuilder
         try {
             $sql = $this->query . $this->whereClause . " LIMIT 1";
             $stmt = $this->connection->prepare($sql);
-            $stmt->execute($this->bindings); 
+            $stmt->execute($this->bindings);
             return $stmt->fetch(PDO::FETCH_OBJ);
         } catch (PDOException $e) {
             // Log the error message
@@ -194,9 +208,8 @@ class QueryBuilder
     public function toSql()
     {
         $query = $this->query . $this->whereClause;
-        foreach($this->bindings as $val)
-        {
-            $query = str_replace("?","'$val'",$query);
+        foreach ($this->bindings as $val) {
+            $query = str_replace("?", "'$val'", $query);
         }
         return $query;
     }
