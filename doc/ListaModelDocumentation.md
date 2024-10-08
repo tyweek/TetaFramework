@@ -27,10 +27,10 @@ class ListaController
         $newItem = (new Lista())->create(['name' => 'Nuevo Item']);
 
         // Actualizar un elemento existente
-        (new Lista())->update(['name' => 'Item Actualizado'], 1);
+        (new Lista())->update(['name' => 'Item Actualizado']);
 
         // Eliminar un elemento
-        (new Lista())->delete(1);
+        (new Lista())->delete();
 
         // Retornar los resultados
         return [
