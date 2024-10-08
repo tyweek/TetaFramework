@@ -96,5 +96,32 @@ class ListaController extends Controller
 }
 ```
 
+## Ejemplo de uso en la vista "Lista"
+```php
+<h1>{{ $title }}</h1>
+
+@foreach ($items as $item)
+    <p>{{ $item->name }}</p>
+    @foreach ($item->details as $detail)
+        <span>{{ $detail->data }}</span>
+    @endforeach
+@endforeach
+
+@if ($showFooter)
+    <footer>Este es el pie de página.</footer>
+@else
+    <p>No se muestra el pie de página.</p>
+@endif
+
+@for ($i = 0; $i <= 10; $i++)
+    <p>Iteración: {{ $i }}</p>
+@endfor
+
+@php
+    // Código PHP adicional
+    echo "Este es un mensaje desde PHP";
+@endphp
+```
+
 ## Conclusión
 La clase `View` facilita el manejo de variables y la renderización de vistas en el framework `TetaFramework`, permitiendo un control efectivo sobre las plantillas y su contenido.
