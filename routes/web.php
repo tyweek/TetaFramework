@@ -22,4 +22,6 @@ $router = new Router();
 //     // Puedes almacenar esta configuración en la sesión, en una cookie, etc.
 // });
 
+$router->addRoute('GET', '/', 'App\Controllers\ListaController@index');
+
 return $router;

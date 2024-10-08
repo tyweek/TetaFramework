@@ -128,21 +128,23 @@ class MakeAllCommand extends Command
         $content .= "use TetaFramework\Http\Request;\n";
         $content .= "use TetaFramework\Http\RedirectResponse;\n";
         $content .= "use TetaFramework\Http\Session;\n";
-        $content .= "use TetaFramework\Template\Template;\n";
+        $content .= "use TetaFramework\View;\n";
+        $content .= "\n";
         $content .= "class {$name}Controller extends Controller\n";
         $content .= "{\n";
         $content .= "    public function index(Request \$request): Response\n";
         $content .= "    {\n";
         $content .= "        \$items = $name::all();\n";
-        $content .= "        \$template = new Template();\n";
-        $content .= "        \$template->assign('lang', \$this->getLang()->getAllTranslate());\n";
-        $content .= "        \$template->assign('locale', \$this->getLang()->getLocale());\n";
-        $content .= "        \$template->assign('uri', \$request->getPathInfo());\n";
-        $content .= "        \$content = \$template->render('$name');\n";
+        $content .= "        view::assign('lang', \$this->getLang()->getAllTranslate());\n";
+        $content .= "        view::assign('uri', \$request->getPathInfo());\n";
+        $content .= "        view::assign('locale', \$this->getLang()->getLocale());\n";
+        $content .= "        \$content =  view::render('$name');\n";
         $content .= "        return new Response(\$content);\n";
         $content .= "    }\n\n";
         $content .= "}\n";
-
+        
+        
+        
         $path = __DIR__ . '/../../app/Controllers/' . $name . 'Controller.php';
 
         if (!file_exists(dirname($path))) {

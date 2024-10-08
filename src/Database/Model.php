@@ -2,291 +2,117 @@
 
 namespace TetaFramework\Database;
 
-use TetaFramework\Database\DatabaseManager;
-use TetaFramework\Database\Pagination;
-
 class Model
 {
     protected $table;
-    protected $primaryKey = 'id';
-    protected $attributes = [];
-    protected $exists = false;
-    protected $uniqueField;
+    protected $fillable = [];
+    protected $attributes = ['id' => null];
+    protected $queryBuilder;
 
-    public function __construct(array $attributes = [])
+    public function __construct()
     {
-        $this->attributes = $attributes;
-        $this->exists = false; // Inicializar como false
+        $this->queryBuilder = new QueryBuilder(DatabaseManager::connection(), $this->table);
     }
 
-
-    public static function query()
+    public function all()
     {
-        return new QueryBuilder(DatabaseManager::connection(), (new static)->getTable());
+        $results = $this->queryBuilder->select()->get();
+
+        $this->attributes = array_map(function($result) {
+            $lista = new static();
+            $lista->fill((array)$result);
+            return $lista;
+        }, $results);
+
+        return $this->attributes; 
     }
 
-    public static function paginate($perPage = 10, $page = 1)
+    public function where($column, $operator, $value)
     {
-        // Obtenemos los resultados paginados
-        $items = static::query()->select()->paginate($perPage, $page)->getArray();
-
-        // Obtenemos el total de registros
-        $totalItems = static::query()->count();
-        // Creamos una instancia de Pagination
-        $pagination = new Pagination($totalItems, $perPage, $page);
-
-        // Devolvemos un array con los resultados y la instancia de Pagination
-        return [
-            'result' => $items,
-            'pagination' => $pagination
-        ];
+        $this->queryBuilder->where($column, $operator, $value);
+        return $this; 
     }
 
-    public static function all($perPage = 1, $currentPage = 1)
+    public function orWhere($column, $operator, $value)
     {
-        return static::query()->select()->get();
-    }
-    public static function allArray($perPage = 1, $currentPage = 1)
-    {
-        return static::query()->select()->getArray();
+        $this->queryBuilder->orWhere($column, $operator, $value);
+        return $this; 
     }
 
-    public static function find($id)
+    public function between($column, $start, $end)
     {
-        $result = static::query()->select()->where((new static)->getPrimaryKey(), '=', $id)->first();
+        $this->queryBuilder->between($column, $start, $end);
+        return $this; 
+    }
+
+    public function find($id)
+    {
+        $result = $this->queryBuilder->select()->where('id', '=', $id)->get();
+
         if ($result) {
-            $model = new static($result); // Crear una nueva instancia de Test con los datos obtenidos
-            $model->exists = true; // Marcar el modelo como existente
-            return $model;
+            $lista = new static();
+            $lista->fill((array)$result[0]);
+            return $lista;
         }
+
         return null;
     }
 
-    public function save()
+    public function create(array $data)
     {
-        // Verificar si el modelo ya existe en la base de datos
-        if ($this->exists) {
-            // Si el modelo ya existe, actualizamos los datos
-            return static::query()->select()->where($this->getPrimaryKey(), '=', $this->getKey())->update($this->attributes);
-        } else {
-            $existingModel = static::query()->select()
-                ->where($this->uniqueField, '=', $this->{$this->uniqueField}) // Suponiendo que 'name' es el campo único
-                ->first();
-            if ($existingModel) {
-                // Si el campo único ya existe, arrojar un error
-                echo "El valor del campo único '{$this->{$this->uniqueField}}' ya existe en la base de datos.";
-            } else {
-                // Si el campo único no existe, continuar con la lógica de guardar el modelo
-                $id = static::query()->insert($this->attributes);
-                if ($id) {
-                    $this->exists = true;
-                    $this->setKey($id);
-                }
-                return $id;
-            }
-        }
+        $data = array_intersect_key($data, array_flip($this->fillable));
+        $id = $this->queryBuilder->insert($data);
+        return $this->find($id);
     }
 
-    public function update()
+    public function update(array $data)
     {
-        $this->save();
+        $data = array_intersect_key($data, array_flip($this->fillable));
+        $this->queryBuilder->update($data, $this->attributes['id']);
     }
 
     public function delete()
     {
-        if ($this->exists) {
-            return static::query()->where($this->getPrimaryKey(), '=', $this->getKey())->delete();
+        $this->queryBuilder->delete($this->attributes['id']);
+    }
+
+    public function fill(array $data)
+    {
+        foreach ($data as $key => $value) {
+            // Asigna siempre el id, aunque no esté en fillable
+            if ($key === 'id') {
+                $this->attributes['id'] = $value;
+            } elseif (in_array($key, $this->fillable)) {
+                $this->{$key} = $value;
+            }
         }
-        return false;
     }
-
-    public static function create(array $attributes)
-    {
-        $model = new static($attributes);
-        $created = $model->save();
-        return $created;
-    }
-
-    public static function bulk_create(array $attributes)
-    {
-        $objects = [];
-        foreach($attributes as $item) 
-        {
-            $model = new static($attributes);
-            $objects[] = $model->save();
-            die();
-        }
-        
-        return $objects;
-    }
-
-    public static function where($column, $operator = null, $value = null)
-    {
-        // Si solo se pasan dos argumentos, asumimos que el operador es "="
-        if (func_num_args() == 2) {
-            $value = $operator;
-            $operator = "=";
-        }
-
-        // Realizar la consulta usando los argumentos proporcionados
-        $query = static::query()->select()->where($column, $operator, $value);
-        $result = $query->first();
-
-        if ($result) {
-            $model = new static($result); // Crear una nueva instancia del modelo con los datos obtenidos
-            $model->exists = true; // Marcar el modelo como existente
-            return $model;
-        }
-
-        return null;
-    }
-
-    public static function wheres($column, $operator = null, $value = null)
-    {
-        // Si solo se pasan dos argumentos, asumimos que el operador es "="
-        if (func_num_args() == 2) {
-            $value = $operator;
-            $operator = "=";
-        }
-
-        // Realizar la consulta usando los argumentos proporcionados
-        $query = static::query()->select()->where($column, $operator, $value);
-        $result = [];
-        foreach($query->get() as $item)
-        {
-            $model = new static((array)$item); // Crear una nueva instancia del modelo con los datos obtenidos
-            $model->exists = true; // Marcar el modelo como existente
-            $result[] = $model;
-        }
-
-        return $result;
-    }
-
-    public static function allwhere($column, $operator = null, $value = null)
-    {
-        // Si solo se pasan dos argumentos, asumimos que el operador es "="
-        if (func_num_args() == 2) {
-            $value = $operator;
-            $operator = "=";
-        }
-
-        // Realizar la consulta usando los argumentos proporcionados
-        $query = static::query()->select()->where($column, $operator, $value);
-
-        return $query->getArray();
-    }
-
-    public static function allbetween($column, $value = null, $value2 = null)
-    {
- 
-        if (func_num_args() == 3) {
-            $value2 = $value2;
-            $value = $value;
-        }
-
-        $query = static::query()->select()->whereBetween($column, $value, $value2);
-
-
-        return $query->getArray();
-    }
-
-    public static function andallwhere(
-        $column,
-        $operator = null,
-        $value = null,
-        $andcol = null,
-        $andopr = null,
-        $anvalue = null
-    ) {
-        // Si solo se pasan dos argumentos, asumimos que el operador es "="
-        if (func_num_args() == 2) {
-            $value = $operator;
-            $operator = "=";
-        }
-
-        // Realizar la consulta usando los argumentos proporcionados
-        $query = static::query()->select()->where($column, $operator, $value)
-            ->where($andcol, $andopr, $anvalue);
-
-        return $query->getArray();
-    }
-
-
-    protected function getTable()
-    {
-        return $this->table ?? strtolower((new \ReflectionClass($this))->getShortName()) . 's';
-    }
-
-    protected function getPrimaryKey()
-    {
-        return $this->primaryKey;
-    }
-
-    protected function getKey()
-    {
-        return $this->attributes[$this->getPrimaryKey()] ?? null;
-    }
-
-    protected function setKey($value)
-    {
-        $this->attributes[$this->getPrimaryKey()] = $value;
-    }
-
+    
     public function __get($name)
     {
         return $this->attributes[$name] ?? null;
     }
 
-    public function __set($name, $value)
+    // Agrega el método get() para delegar al QueryBuilder
+    public function get($modelClass = null)
     {
-        $this->attributes[$name] = $value;
+        // Obtener los resultados de la consulta
+        $results = $this->queryBuilder->get();
+
+        if ($modelClass) {
+            // Crear instancias del modelo
+            return array_map(function($data) use ($modelClass) {
+                $modelInstance = new $modelClass();
+                $modelInstance->fill($data);
+                return $modelInstance;
+            }, $results);
+        }
+
+        return $results; // Si no hay modelo, devuelve el array normal
     }
 
-    // Métodos de relación
-
-    public function hasOne($related, $foreignKey = null, $localKey = null)
+    public function getQueryBuilder()
     {
-        $relatedInstance = new $related;
-        $foreignKey = $foreignKey ?: $this->getForeignKey();
-        $localKey = $localKey ?: $this->primaryKey;
-        return $relatedInstance->query()->select()->where($foreignKey, '=', $this->{$localKey})->firstObj();
-    }
-
-    public function hasMany($related, $foreignKey = null, $localKey = null)
-    {
-        $relatedInstance = new $related;
-        $foreignKey = $foreignKey ?: $this->getForeignKey();
-        $localKey = $localKey ?: $this->primaryKey;
-        return $relatedInstance->query()->where($foreignKey, '=', $this->{$localKey})->get();
-    }
-
-    public function belongsTo($related, $foreignKey = null, $ownerKey = null)
-    {
-        $relatedInstance = new $related;
-        $foreignKey = $foreignKey ?: $this->getForeignKey();
-        $ownerKey = $ownerKey ?: $relatedInstance->primaryKey;
-        return $relatedInstance->query()->where($ownerKey, '=', $this->{$foreignKey})->first();
-    }
-
-    public function belongsToMany($related, $pivotTable, $foreignPivotKey, $relatedPivotKey, $localKey = null, $relatedKey = null)
-    {
-        $relatedInstance = new $related;
-        $localKey = $localKey ?: $this->primaryKey;
-        $relatedKey = $relatedKey ?: $relatedInstance->primaryKey;
-
-        $pivotTable = (new QueryBuilder($this->connection, $pivotTable))
-            ->select([$foreignPivotKey, $relatedPivotKey])
-            ->where($foreignPivotKey, '=', $this->{$localKey})
-            ->getArray();
-
-        $relatedIds = array_column($pivotTable, $relatedPivotKey);
-
-        return $relatedInstance->query()->whereIn($relatedKey, $relatedIds)->get();
-    }
-
-    protected function getForeignKey()
-    {
-        var_dump(strtolower((new \ReflectionClass($this))->getShortName()) . '_id');
-        return strtolower((new \ReflectionClass($this))->getShortName()) . '_id';
+        return $this->queryBuilder;
     }
 }

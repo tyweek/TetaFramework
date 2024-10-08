@@ -3,7 +3,6 @@
 namespace TetaFramework\Database;
 
 use PDO;
-use PDOException;
 
 class QueryBuilder
 {
@@ -11,206 +10,119 @@ class QueryBuilder
     protected $table;
     protected $query;
     protected $bindings = [];
-    protected $whereClause = '';
-    protected $wheres = [];
-    protected $orWheres = [];
-
+    protected $queryBuilder;
 
     public function __construct(PDO $connection, $table)
     {
         $this->connection = $connection;
         $this->table = $table;
+        $this->query = '';
     }
 
     public function select($columns = ['*'])
     {
-        $columns = implode(', ', $columns);
-        $this->query = "SELECT $columns FROM {$this->table}";
+        $this->query = 'SELECT ' . implode(', ', $columns) . ' FROM ' . $this->table;
         return $this;
     }
 
-    public function where($column, $operator, $value)
+    public function where($column, $operator, $value, $condition = 'AND')
     {
-        if ($operator == 'LIKE')
-            $value = "" . $value . "";
-        if ($this->whereClause) {
-            $this->whereClause .= " AND $column $operator ?";
+        // Verifica si la consulta ya contiene 'WHERE'
+        if (strpos($this->query, 'WHERE') === false) {
+            // No hay 'WHERE', agregamos la cláusula 'WHERE' sin espacio adicional
+            $this->query .= " WHERE $column $operator :$column";
         } else {
-            $this->whereClause = " WHERE $column $operator ?";
+            // Ya hay un 'WHERE', así que simplemente agregamos el tipo de condición
+            $this->query .= " $condition $column $operator :$column";
         }
-        $this->bindings[] = $value;
-        return $this;
-    }
-
-    public function whereBetween($column, $value1, $value2)
-    {
-        if ($this->whereClause) {
-            $this->whereClause .= " AND $column BETWEEN ? AND ?";
-        } else {
-            $this->whereClause = " WHERE $column BETWEEN ? AND ?";
-        }
-        $this->bindings[] = $value1;
-        $this->bindings[] = $value2;
-
-        return $this;
-    }
-    
-    public function whereIn($column, $values)
-    {
-        $placeholders = implode(', ', array_fill(0, count($values), '?'));
-        if ($this->whereClause) {
-            $this->whereClause .= " AND $column IN ($placeholders)";
-        } else {
-            $this->whereClause = " WHERE $column IN ($placeholders)";
-        }
-        $this->bindings = array_merge($this->bindings, $values);
-        return $this;
+        $this->bindings[$column] = $value; 
+        return $this; 
     }
 
     public function orWhere($column, $operator, $value)
     {
-        if ($operator == 'LIKE')
-            $value = "" . $value . "";
-
-        if ($this->whereClause) {
-            $this->whereClause .= " OR $column $operator ?";
+        return $this->where($column, $operator, $value, 'OR');
+    }
+    
+    public function between($column, $start, $end)
+    {
+        // Si el valor de $end no tiene hora, se le agrega '23:59:59'
+        if (strpos($end, ' ') === false) {
+            $end .= ' 23:59:59';
+        }
+    
+        // Verifica si la consulta ya contiene 'WHERE'
+        if (strpos($this->query, 'WHERE') === false) {
+            // No hay 'WHERE', agregamos la cláusula 'WHERE' sin espacio adicional
+            $this->query .= " WHERE $column BETWEEN :start AND :end";
         } else {
-            $this->whereClause = " WHERE $column $operator ?";
+            // Ya hay un 'WHERE', agregamos 'AND'
+            $this->query .= " AND $column BETWEEN :start AND :end";
         }
-        $this->bindings[] = $value;
-        return $this;
+        
+        // Agregar los valores de inicio y fin al arreglo de bindings
+        $this->bindings['start'] = $start;
+        $this->bindings['end'] = $end; 
+    
+        return $this; 
     }
+    
 
-    public function count()
+    public function get($modelClass = null)
     {
-        try {
-            // Construimos la consulta para obtener el conteo
-            $countQuery = "SELECT COUNT(*) as count FROM " . $this->table;
-            $stmt = $this->connection->prepare($countQuery);
-            $stmt->execute($this->bindings);
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $result['count'];
-        } catch (PDOException $e) {
-            // Log the error message
-            error_log('QueryBuilder count error: ' . $e->getMessage());
-            return false;
+        // Verifica si la consulta no tiene SELECT, agrégalo automáticamente
+        if (strpos($this->query, 'SELECT') === false) {
+            $this->query = 'SELECT * FROM ' . $this->table . ' ' . $this->query;
         }
-    }
-    public function paginate($perPage = 10, $page = 1)
-    {
-        // Calculamos el índice de inicio
-        $startIndex = ($page - 1) * $perPage;
-
-        // Agregamos el desplazamiento y el límite a la consulta
-        $this->query .= " LIMIT $perPage OFFSET $startIndex";
-
-        return $this;
-    }
-
-    public function get()
-    {
-        try {
-            $sql = $this->query . $this->whereClause;
-            $stmt = $this->connection->prepare($sql);
-            $stmt->execute($this->bindings);
-            return $stmt->fetchAll(PDO::FETCH_OBJ);
-        } catch (PDOException $e) {
-            // Log the error message
-            error_log('QueryBuilder get error: ' . $e->getMessage());
-            return false;
+    
+        // Prepara y ejecuta la consulta
+        $stmt = $this->connection->prepare($this->query);
+        $stmt->execute($this->bindings);
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC); // Asegúrate de obtener un array asociativo
+    
+        // Si se especifica una clase de modelo, convierte los resultados
+        if ($modelClass) {
+            return array_map(function($data) use ($modelClass) {
+                $modelInstance = new $modelClass();
+                $modelInstance->fill($data); // Aquí $data debe ser un array
+                return $modelInstance;
+            }, $results);
         }
-    }
-    public function getArray()
-    {
-        try {
-            $sql = $this->query . $this->whereClause;
-            $stmt = $this->connection->prepare($sql);
-            $stmt->execute($this->bindings);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            // Log the error message
-            error_log('QueryBuilder get error: ' . $e->getMessage());
-            return false;
-        }
-    }
-
-    public function first()
-    {
-        try {
-            $sql = $this->query . $this->whereClause . " LIMIT 1";
-            $stmt = $this->connection->prepare($sql);
-            $stmt->execute($this->bindings);
-            return $stmt->fetch(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            // Log the error message
-            error_log('QueryBuilder first error: ' . $e->getMessage());
-            return false;
-        }
-    }
-    public function firstObj()
-    {
-        try {
-            $sql = $this->query . $this->whereClause . " LIMIT 1";
-            $stmt = $this->connection->prepare($sql);
-            $stmt->execute($this->bindings);
-            return $stmt->fetch(PDO::FETCH_OBJ);
-        } catch (PDOException $e) {
-            // Log the error message
-            error_log('QueryBuilder first error: ' . $e->getMessage());
-            return false;
-        }
+    
+        return $results;
     }
 
     public function insert(array $data)
     {
-        try {
-            $columns = implode(', ', array_keys($data));
-            $placeholders = implode(', ', array_fill(0, count($data), '?'));
-            $this->query = "INSERT INTO {$this->table} ($columns) VALUES ($placeholders)";
-            $this->bindings = array_values($data);
-            $stmt = $this->connection->prepare($this->query);
-            $stmt->execute($this->bindings);
-            return $this->connection->lastInsertId();
-        } catch (PDOException $e) {
-            // Log the error message
-            error_log('QueryBuilder insert error: ' . $e->getMessage());
-            return false;
-        }
+        $columns = implode(', ', array_keys($data));
+        $placeholders = ':' . implode(', :', array_keys($data));
+        $this->query = "INSERT INTO $this->table ($columns) VALUES ($placeholders)";
+        
+        $stmt = $this->connection->prepare($this->query);
+        $stmt->execute($data);
+        
+        return $this->connection->lastInsertId();
     }
 
-    public function update(array $data)
+    public function update(array $data, $id)
     {
-        try {
-            $setClause = implode(', ', array_map(fn($col) => "$col = ?", array_keys($data)));
-            $this->query = "UPDATE {$this->table} SET $setClause" . $this->whereClause;
-            $this->bindings = array_merge(array_values($data), $this->bindings);
-            $stmt = $this->connection->prepare($this->query);
-            return $stmt->execute($this->bindings);
-        } catch (PDOException $e) {
-            // Log the error message
-            error_log('QueryBuilder update error: ' . $e->getMessage());
-            return false;
-        }
+        $setString = implode(', ', array_map(fn($col) => "$col = :$col", array_keys($data)));
+        $this->query = "UPDATE $this->table SET $setString WHERE id = :id";
+        
+        $data['id'] = $id;
+        $stmt = $this->connection->prepare($this->query);
+        $stmt->execute($data);
     }
 
-    public function delete()
+    public function delete($id)
     {
-        try {
-            $this->query = "DELETE FROM {$this->table}" . $this->whereClause;
-            $stmt = $this->connection->prepare($this->query);
-            return $stmt->execute($this->bindings);
-        } catch (PDOException $e) {
-            // Log the error message
-            error_log('QueryBuilder delete error: ' . $e->getMessage());
-            return false;
-        }
+        $this->query = "DELETE FROM $this->table WHERE id = :id";
+        $stmt = $this->connection->prepare($this->query);
+        $stmt->execute(['id' => $id]);
     }
+
     public function toSql()
     {
-        $query = $this->query . $this->whereClause;
-        foreach ($this->bindings as $val) {
-            $query = str_replace("?", "'$val'", $query);
-        }
-        return $query;
+        return $this->query;
     }
 }
