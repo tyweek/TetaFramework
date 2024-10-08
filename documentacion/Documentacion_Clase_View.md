@@ -49,22 +49,25 @@ La clase `View` también incluye métodos para procesar varias directivas dentro
 ### 4. `processDirectives($content)`
 Procesa las directivas en el contenido de la vista.
 
-### 5. `processPhpDirectives($content)`
+### 5 `processImport($content)`
+Procesa la directiva `@import` para importar otras vistas a la actual.
+
+### 6. `processPhpDirectives($content)`
 Convierte las directivas de PHP como `{{ variable }}` en código PHP correspondiente.
 
-### 6. `processForeach($content)`
+### 7. `processForeach($content)`
 Convierte la directiva `@foreach` en código PHP de bucle foreach.
 
-### 7. `processIf($content)`
+### 8. `processIf($content)`
 Convierte la directiva `@if` en código PHP de condicional if.
 
-### 8. `processElse($content)`
+### 9. `processElse($content)`
 Convierte la directiva `@else` en código PHP correspondiente.
 
-### 9. `processFor($content)`
+### 10. `processFor($content)`
 Convierte la directiva `@for` en código PHP de bucle for.
 
-### 10. `processPhpCode($content)`
+### 11. `processPhpCode($content)`
 Convierte las directivas `@php ... @endphp` en código PHP ejecutable.
 
 ## Ejemplo de Uso en el Controlador `ListaController`
@@ -121,6 +124,10 @@ class ListaController extends Controller
     // Código PHP adicional
     echo "Este es un mensaje desde PHP";
 @endphp
+
+// importa otra vista
+@import->test 
+
 ```
 
 ## Conclusión

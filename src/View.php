@@ -74,6 +74,7 @@ class View
     {
         $originalContent = $content; // Guardar el contenido original para comparar
 
+        $content = self::processImport($content);
         $content = self::processPhpDirectives($content);
         $content = self::processForeach($content);
         $content = self::processIf($content);
@@ -83,6 +84,20 @@ class View
 
         // Si el contenido ha cambiado, devolverlo, de lo contrario devolver el original
         return $content !== $originalContent ? $content : $originalContent;
+    }
+
+    protected static function processImport($content)
+    {
+        return preg_replace_callback('/@import->(.*?)\s*?(\r?\n|$)/', function ($matches) {
+            $path = trim($matches[1]);
+            // Cargar el contenido del archivo de la plantilla importada
+            $importedTemplatePath = __DIR__ . '/../views/' . $path . '.php';
+            if (file_exists($importedTemplatePath)) {
+                return file_get_contents($importedTemplatePath);
+            } else {
+                return '<div class="error">Error: La plantilla "' . htmlspecialchars($path) . '" no se encontró.</div>';
+            }
+        }, $content);
     }
 
     protected static function processPhpDirectives($content)
