@@ -32,6 +32,12 @@ class Model
         return $this->attributes; 
     }
 
+    public function select($columns = ['*'])
+    {
+        $this->queryBuilder->select($columns);
+        return $this; 
+    }
+
     public function where($column, $operator, $value)
     {
         $this->queryBuilder->where($column, $operator, $value);
@@ -48,6 +54,18 @@ class Model
     {
         $this->queryBuilder->between($column, $start, $end);
         return $this; 
+    }
+
+    public function sum($column,$alias)
+    {
+        $this->queryBuilder->sum($column, $alias);
+        return $this;
+    }
+
+    public function groupBy($column)
+    {
+        $this->queryBuilder->groupBy($column);
+        return $this;
     }
 
     public function find($id)
@@ -114,6 +132,20 @@ class Model
         }
 
         return $results; // Si no hay modelo, devuelve el array normal
+    }
+    public function getOne($modelClass = null)
+    {
+        // Obtener un solo resultado de la consulta
+        $result = $this->queryBuilder->getOne();
+
+        if ($modelClass && $result) {
+            // Crear una instancia del modelo si se especifica la clase de modelo
+            $modelInstance = new $modelClass();
+            $modelInstance->fill($result);
+            return $modelInstance;
+        }
+
+        return $result; // Si no hay modelo, devuelve el resultado como array
     }
 
     public function getQueryBuilder()
