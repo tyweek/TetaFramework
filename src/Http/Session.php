@@ -62,11 +62,11 @@ class Session
             $this->regenerateId(true);
         }
     }
-    public function Validate($custom = null)
+    public function Validate($custom = null,$primary = "token")
     {
         $k = $custom;
         if($k == NULL)
-            $k = "token";
+            $k = $primary;
         return $this->has($k);
     }
 

@@ -81,6 +81,21 @@ class Model
         return null;
     }
 
+    public function findBy($column, $value)
+    {
+        // Realiza una consulta para obtener un solo resultado
+        $result = $this->queryBuilder->select()->where($column, '=', $value)->getOne();
+
+        if ($result) {
+            // Si se encuentra un resultado, llenamos una instancia del modelo con los datos
+            $modelInstance = new static();
+            $modelInstance->fill((array)$result);
+            return $modelInstance;
+        }
+
+        return null; // Retorna null si no se encuentra nada
+    }
+
     public function create(array $data)
     {
         $data = array_intersect_key($data, array_flip($this->fillable));
