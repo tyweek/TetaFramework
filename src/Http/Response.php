@@ -39,4 +39,12 @@ class Response
         }
         echo $this->content;
     }
+     // Nuevo método para devolver una respuesta JSON
+     public function json($data, $statusCode = 200)
+     {
+         $this->setStatusCode($statusCode);
+         $this->setHeader('Content-Type', 'application/json');
+         $this->setContent(json_encode($data));
+         return $this;
+     }
 }
