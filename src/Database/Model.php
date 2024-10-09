@@ -14,6 +14,11 @@ class Model
         $this->queryBuilder = new QueryBuilder(DatabaseManager::connection(), $this->table);
     }
 
+    public function getTable()
+    {
+        return $this->table;
+    }
+
     public function all()
     {
         $results = $this->queryBuilder->select()->get();
@@ -115,4 +120,41 @@ class Model
     {
         return $this->queryBuilder;
     }
+
+    public function hasOne($relatedModel, $foreignKey, $localKey = 'id')
+    {
+        $relatedModelInstance = new $relatedModel();
+        return $relatedModelInstance->where($foreignKey, '=', $this->{$localKey})->get($relatedModel)[0] ?? null;
+    }
+
+    public function hasMany($relatedModel, $foreignKey, $localKey = 'id')
+    {
+        $relatedModelInstance = new $relatedModel();
+        // Realiza la consulta y devuelve las instancias del modelo relacionado
+        return $relatedModelInstance->where($foreignKey, '=', $this->{$localKey})->get($relatedModel);
+    }
+   
+    public function belongsTo($relatedModel, $foreignKey, $ownerKey = 'id')
+    {
+        $relatedModelInstance = new $relatedModel();
+        // Realiza la consulta y devuelve la instancia del modelo relacionado
+        return $relatedModelInstance->where($ownerKey, '=', $this->{$foreignKey})->get($relatedModel)[0] ?? null;
+    }
+
+    public function belongsToMany($relatedModel, $pivotTable, $foreignKey, $relatedForeignKey, $localKey = 'id', $relatedKey = 'id')
+    {
+        $relatedModelInstance = new $relatedModel();
+
+        // Hacer la consulta a la tabla pivote
+        $this->queryBuilder->select([$relatedModelInstance->getTable().'.*'])
+                        ->from($pivotTable)
+                        ->join($relatedModelInstance->getTable(), "{$relatedModelInstance->getTable()}.$relatedKey", '=', "$pivotTable.$relatedForeignKey")
+                        ->where("$pivotTable.$foreignKey", '=', $this->{$localKey});
+        
+        // Devuelve una lista de instancias del modelo relacionado
+        return $relatedModelInstance->get($relatedModel);
+    }
+
+    
+
 }

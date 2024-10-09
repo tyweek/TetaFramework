@@ -19,6 +19,19 @@ class QueryBuilder
         $this->query = '';
     }
 
+    public function from($table)
+    {
+        $this->table = $table;
+        return $this;
+    }
+
+    // Nuevo método 'join' para realizar combinaciones entre tablas
+    public function join($table, $first, $operator, $second, $type = 'INNER')
+    {
+        $this->query .= " $type JOIN $table ON $first $operator $second";
+        return $this;
+    }
+
     public function select($columns = ['*'])
     {
         $this->query = 'SELECT ' . implode(', ', $columns) . ' FROM ' . $this->table;
