@@ -55,6 +55,8 @@ class MakeControllerCommand extends Command
         $content .= "\n";
         $content .= "class {$controllerName}Controller extends Controller\n";
         $content .= "{\n";
+        $content .= "    protected \$ControllerName = '$controllerName';";
+        $content .= "\n";
         $content .= "    public function index(Request \$request): Response\n";
         $content .= "    {\n";
         $content .= "        \$items = $controllerName::all();\n";

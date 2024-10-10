@@ -3,18 +3,23 @@
 namespace App\Controllers;
 
 use TetaFramework\Http\Session;
-use App\Models\AuthSession;
+use TetaFramework\Http\Auth;
+use TetaFramework\Http\RedirectResponse;
 use TetaFramework\Language\Language;
+use TetaFramework\View;
 
 use function PHPSTORM_META\type;
 
 class Controller
 {
     protected $language;
-
+    protected $requireAuth;
+    protected $ControllerName = "Controller";
+    
     public function __construct(Language $language)
     {
         $this->language = $language;
+        view::assign('ControllerName', $this->ControllerName);
     }
 
     protected function getLang(){
@@ -22,27 +27,7 @@ class Controller
     }
     protected function checkSession()
     {
-        // Iniciar la sesión
-        $session = new Session();
-
-        $haveSession = $session->Validate();
-        if($haveSession)
-        {
-            $token = $session->get('token');
-
-            $now =date('Y-m-d H:i:s');
-            $sessionRecord = AuthSession::where('token', $token);
-            if (!$sessionRecord || $sessionRecord->expires_at < $now) {
-                // redireccionamos al logout por sesion invalida
-                // return new RedirectResponse("/logout");
-                $session = new Session();
-                $session->invalidate();
-                return false;
-            }
-            return true;
-                // return new RedirectResponse(($redirectPage));
-        }else{
-            return false;
-        }
+        $auth = new Auth();
+        return $auth->check();
     }
 }

@@ -130,6 +130,8 @@ class MakeAllCommand extends Command
         $content .= "use TetaFramework\Http\Session;\n";
         $content .= "use TetaFramework\View;\n";
         $content .= "\n";
+        $content .= "protected \$ControllerName = '$name';";
+        $content .= "{\n";
         $content .= "class {$name}Controller extends Controller\n";
         $content .= "{\n";
         $content .= "    public function index(Request \$request): Response\n";
