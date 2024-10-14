@@ -16,6 +16,16 @@ class Request
         $this->request = $request;
         $this->server = $server;
         $this->files = $files;
+
+        // Verifica si el contenido es JSON y decodifícalo
+        if ($this->isJson()) {
+            $input = file_get_contents('php://input');
+            $jsonData = json_decode($input, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                // Combina los datos JSON con los datos del request
+                $this->request = array_merge($this->request, $jsonData);
+            }
+        }
     }
 
     public static function createFromGlobals()
@@ -36,6 +46,12 @@ class Request
         return $default;
     }
 
+    public function all()
+    {
+        // Combina los datos de query y request
+        return array_merge($this->query, $this->request);
+    }
+
     public function getMethod()
     {
         return $this->server['REQUEST_METHOD'] ?? 'GET';
@@ -46,12 +62,6 @@ class Request
         $path = $this->server['REQUEST_URI'] ?? '/';
         $path = parse_url($path, PHP_URL_PATH);
         return $path;
-    }
-
-    public function all()
-    {
-        // Combina los datos de query y request
-        return array_merge($this->query, $this->request);
     }
 
     public function getRequest()
@@ -79,5 +89,9 @@ class Request
         return $this->files[$key] ?? null;
     }
 
-    // Otros métodos como getQuery, getPost, etc. pueden ser añadidos según necesidad
+    // Método adicional para verificar si el contenido es JSON
+    public function isJson()
+    {
+        return isset($this->server['CONTENT_TYPE']) && strpos($this->server['CONTENT_TYPE'], 'application/json') !== false;
+    }
 }

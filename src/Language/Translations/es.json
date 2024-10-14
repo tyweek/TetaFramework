@@ -1,3 +1,25 @@
 {
-    "welcome": "Bienvenido"
+    "welcome": "Bienvenido",
+    "search" : "Buscar",
+    "main_menu": "Menu Principal",
+    "dashboard": "Panel",
+    "statistics": "Estadisticas",
+    "invoices": "Facturas",
+    "services": "Servicios",
+    "stream_service": "Servicios Streaming",
+    "accounts": "Cuentas",
+    "profiles": "Perfiles",
+    "clients": "Clientes",
+    "options": "Opciones",
+    "general": "General",
+    "servicelist":"Lista de Servicios",
+    "list":"Lista",
+    "name":"Nombre",
+    "price":"Precio",
+    "days":"Dias",
+    "new_service": "Nuevo Servicio",
+    "close": "Cerrar",
+    "save_changes": "Guardar Cambios",
+    "add_new": "Agregar Nuevo"
+
 }

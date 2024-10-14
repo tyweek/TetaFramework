@@ -91,7 +91,7 @@ class View
         return preg_replace_callback('/@import->(.*?)\s*?(\r?\n|$)/', function ($matches) {
             $path = trim($matches[1]);
             // Cargar el contenido del archivo de la plantilla importada
-            $importedTemplatePath = __DIR__ . '/../views/' . $path . '.php';
+            $importedTemplatePath = __DIR__ . '/../views/partials/' . $path . '.php';
             if (file_exists($importedTemplatePath)) {
                 return file_get_contents($importedTemplatePath);
             } else {
