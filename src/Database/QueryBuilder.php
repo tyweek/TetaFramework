@@ -10,12 +10,26 @@ class QueryBuilder
     protected $table;
     protected $query;
     protected $bindings = [];
+    protected $limit;
+    protected $offset;
 
     public function __construct(PDO $connection, $table)
     {
         $this->connection = $connection;
         $this->table = $table;
         $this->query = '';
+    }
+
+    public function limit($limit)
+    {
+        $this->limit = $limit;
+        return $this;
+    }
+
+    public function offset($offset)
+    {
+        $this->offset = $offset;
+        return $this;
     }
 
     public function from($table)
@@ -104,6 +118,15 @@ class QueryBuilder
     {
         if (strpos($this->query, 'SELECT') === false) {
             $this->query = 'SELECT * FROM ' . $this->table . ' ' . $this->query;
+        }
+
+        // Agregar limit y offset a la consulta
+        if ($this->limit) {
+            $this->query .= ' LIMIT ' . $this->limit;
+        }
+
+        if ($this->offset) {
+            $this->query .= ' OFFSET ' . $this->offset;
         }
         
         $stmt = $this->connection->prepare($this->query);

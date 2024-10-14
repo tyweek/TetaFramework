@@ -36,9 +36,9 @@ class Blueprint
         $this->lastColumn = $column;
         return $this;
     }
-    public function decimal($column)
+    public function decimal($column,$precision = 10, $scale = 2)
     {
-        $this->columns[] = "$column decimal";
+        $this->columns[] = "$column DECIMAL($precision, $scale)";
         $this->lastColumn = $column;
         return $this;
     }

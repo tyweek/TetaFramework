@@ -94,4 +94,9 @@ class Request
     {
         return isset($this->server['CONTENT_TYPE']) && strpos($this->server['CONTENT_TYPE'], 'application/json') !== false;
     }
+
+    public function fromJavaScript()
+    {
+        return isset($this->server['HTTP_X_REQUESTED_WITH']) && strpos($this->server['HTTP_X_REQUESTED_WITH'], 'XMLHttpRequest') !== false;
+    }
 }

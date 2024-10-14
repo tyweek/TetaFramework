@@ -120,6 +120,8 @@ class Model
             // Asigna siempre el id, aunque no esté en fillable
             if ($key === 'id') {
                 $this->attributes['id'] = $value;
+                if(in_array($key,$this->fillable))
+                    $this->{$key} = $value;
             } elseif (in_array($key, $this->fillable)) {
                 $this->{$key} = $value;
             }
@@ -161,6 +163,35 @@ class Model
         }
 
         return $result; // Si no hay modelo, devuelve el resultado como array
+    }
+    
+    public function paginate($perPage = 15, $currentPage = 1)
+    {
+        $offset = ($currentPage - 1) * $perPage;
+        
+        // Obtener los resultados con limit y offset
+        $results = $this->queryBuilder->select()
+                                      ->limit($perPage)
+                                      ->offset($offset)
+                                      ->get();
+
+        // Obtener el total de registros para calcular la paginación
+        $totalItems = $this->queryBuilder->select(['COUNT(*) as count'])->getOne()['count'];
+        $totalPages = ceil($totalItems / $perPage);
+
+        return [
+            'data' => array_map(function($result) {
+                $modelInstance = new static();
+                $modelInstance->fill((array)$result);
+                return $modelInstance;
+            }, $results),
+            'pagination' => [
+                'total_items' => $totalItems,
+                'per_page' => $perPage,
+                'current_page' => $currentPage,
+                'total_pages' => $totalPages
+            ]
+        ];
     }
 
     public function getQueryBuilder()
