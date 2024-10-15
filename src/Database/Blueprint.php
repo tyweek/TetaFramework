@@ -92,16 +92,29 @@ class Blueprint
         }
         return $this;
     }
-
     public function default($value)
     {
         if ($this->lastColumn) {
-            $this->columns[count($this->columns) - 1] .= " DEFAULT '$value'";
+            if ($value === 'CURRENT_TIMESTAMP') {
+                $this->columns[count($this->columns) - 1] .= " DEFAULT CURRENT_TIMESTAMP";
+            } else {
+                $this->columns[count($this->columns) - 1] .= " DEFAULT '$value'";
+            }
         } else {
             throw new \Exception("No column defined before calling default()");
         }
         return $this;
     }
+
+    // public function default($value)
+    // {
+    //     if ($this->lastColumn) {
+    //         $this->columns[count($this->columns) - 1] .= " DEFAULT '$value'";
+    //     } else {
+    //         throw new \Exception("No column defined before calling default()");
+    //     }
+    //     return $this;
+    // }
 
     public function foreign($column)
     {
