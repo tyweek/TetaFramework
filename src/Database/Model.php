@@ -68,6 +68,17 @@ class Model
         return $this;
     }
 
+    public function orderBy($column)
+    {
+        $this->queryBuilder->orderBy($column);
+        return $this;
+    }
+    public function count($column = '*')
+    {
+        $this->queryBuilder->count($column);
+        return $this;
+    }
+
     public function find($id)
     {
         $result = $this->queryBuilder->select()->where('id', '=', $id)->get();

@@ -105,12 +105,22 @@ class QueryBuilder
     
         return $this;
     }
-    
-
 
     public function groupBy($column)
     {
         $this->query .= " GROUP BY $column";
+        return $this;
+    }
+
+    public function orderBy($column)
+    {
+        $this->query .= " ORDER BY $column";
+        return $this;
+    }
+    
+    public function count($column = '*', $alias = 'total')
+    {
+        $this->query = "SELECT COUNT($column) as $alias FROM " . $this->table;
         return $this;
     }
 
